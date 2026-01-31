@@ -3,20 +3,20 @@
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 
-const hoverStyle = {
+const hoverStyle: React.CSSProperties = {
   textDecoration: "underline",
   textUnderlineOffset: "0.35em",
   textDecorationThickness: 1.5,
   textDecorationColor: "var(--accent)",
 };
 
+type HoverKey = "experience" | "about" | "contact" | "resume";
+
 function Navbar() {
   const pathname = usePathname();
-  const [hovered, setHovered] = useState();
+  const [hovered, setHovered] = useState<HoverKey | undefined>(undefined);
 
-  const linkBase =
-    "text-right transition-colors duration-150";
-
+  const linkBase = "text-right transition-colors duration-150";
   const active = "text-[var(--accent)]";
   const inactive = "text-[var(--ink)]";
   const muted = "text-[var(--muted)]";
@@ -27,9 +27,7 @@ function Navbar() {
       onMouseLeave={() => setHovered(undefined)}
     >
       <li
-        className={`${linkBase} ${
-          pathname === "/" ? active : inactive
-        }`}
+        className={`${linkBase} ${pathname === "/" ? active : inactive}`}
         onMouseEnter={() => setHovered("experience")}
         style={hovered === "experience" ? hoverStyle : undefined}
       >
@@ -37,9 +35,7 @@ function Navbar() {
       </li>
 
       <li
-        className={`${linkBase} ${
-          pathname === "/about" ? active : inactive
-        }`}
+        className={`${linkBase} ${pathname === "/about" ? active : inactive}`}
         onMouseEnter={() => setHovered("about")}
         style={hovered === "about" ? hoverStyle : undefined}
       >
