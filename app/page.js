@@ -35,7 +35,7 @@ const PROJECTS = [
   {
     name: "Spotify Popularity Prediction",
     meta: "pytorch · 160k+ tracks",
-    live: "",
+    live: "http://31.214.162.17:9294/",
     github: "",
   },
 ];

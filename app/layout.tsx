@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Radio_Canada} from "next/font/google";
 import "./globals.css";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 
 const radio = Radio_Canada({
   subsets: ["latin"],
@@ -10,10 +10,19 @@ const radio = Radio_Canada({
 
 
 export const metadata: Metadata = {
-  title: "Anthony",
-  description: "Anthony's portfolio website",
-  icons: {
-    icon: "/favicon.ico",
+  title: {
+    default: "Anthony Bolivar",
+    template: "%s | Anthony Bolivar",
+  },
+  description: "Anthony Bolivar — Computer Science & Mathematics student building software.",
+  metadataBase: new URL("https://anthonybolivar.com"),
+  openGraph: {
+    title: "Anthony Bolivar",
+    description: "Portfolio of Anthony Bolivar — CS & Math student.",
+    url: "https://anthonybolivar.com",
+    siteName: "Anthony Bolivar",
+    locale: "en_US",
+    type: "website",
   },
 };
 
