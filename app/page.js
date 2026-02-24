@@ -29,13 +29,13 @@ const PROJECTS = [
   {
     name: "Unicraft",
     meta: "multiplayer virtual education platform",
-    live: "",
+    live: "http://31.214.162.17:9294/",
     github: "",
   },
   {
     name: "Spotify Popularity Prediction",
     meta: "pytorch · 160k+ tracks",
-    live: "http://31.214.162.17:9294/",
+    live: "",
     github: "",
   },
 ];
