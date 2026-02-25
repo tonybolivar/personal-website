@@ -27,6 +27,12 @@ const WORK = [
 
 const PROJECTS = [
   {
+    name: "Colgate Marketplace",
+    meta: "multiplayer virtual education platform",
+    live: "https://www.colgatemarket.com/",
+    github: "https://github.com/tonybolivar/colgate-marketplace",
+  },
+  {
     name: "Unicraft",
     meta: "multiplayer virtual education platform",
     live: "http://31.214.162.17:9294/",
