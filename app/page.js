@@ -28,7 +28,7 @@ const WORK = [
 const PROJECTS = [
   {
     name: "Colgate Marketplace",
-    meta: "colgate-wide e-commerce platform built with React + Vite, Supabase, Resend, and Tailwind CSS",
+    meta: "Colgate University-wide e-commerce platform built with React + Vite, Supabase, Resend, and Tailwind CSS",
     live: "https://www.colgatemarket.com/",
     github: "https://github.com/tonybolivar/colgate-marketplace",
   },
