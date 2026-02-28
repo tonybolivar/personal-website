@@ -28,9 +28,21 @@ const WORK = [
 const PROJECTS = [
   {
     name: "Colgate Marketplace",
-    meta: "Colgate University-wide e-commerce platform built with React + Vite, Supabase, Resend, and Tailwind CSS",
+    meta: ".edu-gated campus marketplace · listings, real-time messaging, image uploads · React 19, Supabase",
     live: "https://www.colgatemarket.com/",
     github: "https://github.com/tonybolivar/colgate-marketplace",
+  },
+  {
+    name: "Colgate Plus",
+    meta: "unified academic dashboard · React + TypeScript, Vite, Supabase, Tailwind CSS, Radix UI",
+    live: "https://colgate-plus.vercel.app",
+    github: "https://github.com/tonybolivar/Colgate-Plus",
+  },
+  {
+    name: "Wild Fief",
+    meta: "fantasy world showcase + lore vault · Astro, Leaflet, Fuse.js, Markdown",
+    live: "https://wild-fief.vercel.app",
+    github: "https://github.com/tonybolivar/wild-fief",
   },
   {
     name: "Unicraft",
