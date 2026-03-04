@@ -30,7 +30,7 @@ const PROJECTS = [
     name: "Colgate Marketplace",
     meta: ".edu-gated campus marketplace · listings, real-time messaging, image uploads · React 19, Supabase",
     live: "https://www.colgatemarket.com/",
-    github: "https://github.com/tonybolivar/colgate-marketplace",
+    github: "https://github.com/tonybolivar/colgate-marketplace-v2",
   },
   {
     name: "Colgate Plus",
