@@ -27,34 +27,34 @@ const WORK = [
 
 const PROJECTS = [
   {
-    name: "Colgate Marketplace",
-    meta: ".edu-gated campus marketplace · listings, real-time messaging, image uploads · React 19, Supabase",
-    live: "https://www.colgatemarket.com/",
-    github: "https://github.com/tonybolivar/colgate-marketplace-v2",
+    name: "Shapes & States",
+    meta: "real-time multiplayer political map simulator · multi-source Dijkstra's, WebSocket, FastAPI, NumPy, PostgreSQL",
+    live: "https://shapes-and-states.vercel.app/",
+    github: "https://github.com/tonybolivar/shapes-and-states",
   },
   {
-    name: "Colgate Plus",
-    meta: "unified academic dashboard · React + TypeScript, Vite, Supabase, Tailwind CSS, Radix UI",
-    live: "https://colgate-plus.vercel.app",
-    github: "https://github.com/tonybolivar/Colgate-Plus",
+    name: "Raider Marketplace",
+    meta: "identity-verified student marketplace · Colgate TIA venture · React, TypeScript, Supabase, RLS",
+    live: "https://www.colgatemarket.com/",
+    github: "",
   },
   {
     name: "Wild Fief",
-    meta: "fantasy world showcase + lore vault · Astro, Leaflet, Fuse.js, Markdown",
+    meta: "lore platform · D3.js force graph, Leaflet map, Fuse.js search · Astro, TypeScript",
     live: "https://wild-fief.vercel.app",
     github: "https://github.com/tonybolivar/wild-fief",
   },
   {
-    name: "Unicraft",
-    meta: "multiplayer virtual education platform",
-    live: "http://31.214.162.17:9294/",
-    github: "",
+    name: "ILoveKasaneTETO",
+    meta: "fun desktop pet site · play with Kasane Teto and her music",
+    live: "https://i-love-kasane-teto.vercel.app/",
+    github: "https://github.com/tonybolivar/ILoveKasaneTETO",
   },
   {
-    name: "Spotify Popularity Prediction",
-    meta: "pytorch · 160k+ tracks",
-    live: "",
-    github: "",
+    name: "Colgate Plus",
+    meta: "unified academic dashboard · Moodle + Gradescope aggregator · React, TypeScript, Supabase",
+    live: "https://colgate-plus.vercel.app",
+    github: "https://github.com/tonybolivar/Colgate-Plus",
   },
 ];
 
