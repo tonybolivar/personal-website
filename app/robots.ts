@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://anthonybolivar.com/sitemap.xml",
+    sitemap: "https://anthonysbolivar.com/sitemap.xml",
   };
 }
