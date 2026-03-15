@@ -22,5 +22,19 @@ export const metadata = {
 };
 
 export default function NeatWoodhamPage() {
-  return <TrollContent />;
+  return (
+    <>
+      {/* visible to crawlers, hidden from users who get redirected */}
+      <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }} aria-hidden="true">
+        <h1>Neat Woodham</h1>
+        <p>Neat Woodham is based in the Mobile, Alabama metropolitan area.</p>
+        <h2>Experience</h2>
+        <p>Assistant Manager at Chick-fil-A Restaurants. Full-time, August 2024 – Present. Marketing.</p>
+        <h2>Education</h2>
+        <p>University of South Alabama – Bachelor of Business Administration, Business Administration and Management. August 2025 – May 2027. Marketing.</p>
+        <p>LBW Community College – Associate of Science, Business Administration and Management. August 2023 – May 2025.</p>
+      </div>
+      <TrollContent />
+    </>
+  );
 }
