@@ -62,20 +62,9 @@ export default function TrollContent() {
         inset: 0,
         cursor: started ? "default" : "pointer",
         overflow: "hidden",
+        background: "#fff",
       }}
     >
-      <iframe
-        src="https://anthonybolivar.com"
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          border: "none",
-          pointerEvents: "none",
-        }}
-      />
-
       <audio ref={audioRef} src="/Trololo!.mp3" loop />
 
       <img
