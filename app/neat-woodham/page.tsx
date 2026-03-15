@@ -1,6 +1,7 @@
 import TrollContent from "@/components/TrollContent";
 
 export const metadata = {
+  icons: { icon: "data:," },
   title: { absolute: "Neat Woodham" },
   description:
     "Neat Woodham – Assistant Manager at Chick-fil-A, studying Business Administration at University of South Alabama. Based in the Mobile, AL metropolitan area.",
