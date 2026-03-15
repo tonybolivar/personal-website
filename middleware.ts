@@ -6,7 +6,13 @@ export function middleware(request: NextRequest) {
 
   if (host === "neatwoodham.com" || host === "www.neatwoodham.com") {
     const { pathname } = request.nextUrl;
-    if (pathname === "/sitemap.xml" || pathname === "/robots.txt") {
+    if (
+      pathname.startsWith("/_next/") ||
+      pathname.startsWith("/api/") ||
+      pathname === "/sitemap.xml" ||
+      pathname === "/robots.txt" ||
+      pathname === "/favicon.ico"
+    ) {
       return NextResponse.next();
     }
     const url = request.nextUrl.clone();
