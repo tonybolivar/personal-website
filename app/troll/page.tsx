@@ -58,22 +58,28 @@ export default function TrollPage() {
     <div
       onClick={startParty}
       style={{
-        minHeight: "100vh",
-        width: "100vw",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#111",
-        userSelect: "none",
+        position: "fixed",
+        inset: 0,
         cursor: started ? "default" : "pointer",
         overflow: "hidden",
-        position: "relative",
       }}
     >
+      {/* main page as background */}
+      <iframe
+        src="/"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          border: "none",
+          pointerEvents: "none",
+        }}
+      />
+
       <audio ref={audioRef} src="/Trololo!.mp3" loop />
 
-      {/* roaming troll2 */}
+      {/* bouncing troll2 */}
       <img
         ref={roamRef}
         src="/troll2.png"
@@ -87,30 +93,42 @@ export default function TrollPage() {
         }}
       />
 
-      {/* main troll */}
+      {/* centered troll */}
       <img
         src="/troll.png"
         alt="troll face"
         style={{
-          width: "clamp(300px, 60vw, 650px)",
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "clamp(300px, 50vw, 600px)",
           height: "auto",
-          imageRendering: "pixelated",
-          zIndex: 1,
+          zIndex: 9,
+          pointerEvents: "none",
+          opacity: 0.95,
         }}
       />
-      <p
-        style={{
-          fontSize: "clamp(28px, 5vw, 72px)",
-          fontWeight: "bold",
-          fontFamily: "monospace",
-          letterSpacing: "0.05em",
-          margin: "16px 0 0",
-          color: "#fff",
-          zIndex: 1,
-        }}
-      >
-        {started ? "Problem?" : "Click anywhere..."}
-      </p>
+
+      {!started && (
+        <p
+          style={{
+            position: "fixed",
+            bottom: 40,
+            width: "100%",
+            textAlign: "center",
+            fontSize: "clamp(18px, 3vw, 36px)",
+            fontWeight: "bold",
+            fontFamily: "monospace",
+            color: "#fff",
+            textShadow: "0 0 8px #000, 0 0 4px #000",
+            zIndex: 11,
+            pointerEvents: "none",
+          }}
+        >
+          Click anywhere...
+        </p>
+      )}
     </div>
   );
 }
