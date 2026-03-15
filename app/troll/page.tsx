@@ -110,25 +110,23 @@ export default function TrollPage() {
         }}
       />
 
-      {!started && (
-        <p
-          style={{
-            position: "fixed",
-            bottom: 40,
-            width: "100%",
-            textAlign: "center",
-            fontSize: "clamp(18px, 3vw, 36px)",
-            fontWeight: "bold",
-            fontFamily: "monospace",
-            color: "#fff",
-            textShadow: "0 0 8px #000, 0 0 4px #000",
-            zIndex: 11,
-            pointerEvents: "none",
-          }}
-        >
-          Click anywhere...
-        </p>
-      )}
+      <p
+        style={{
+          position: "fixed",
+          bottom: 40,
+          width: "100%",
+          textAlign: "center",
+          fontSize: "clamp(18px, 3vw, 36px)",
+          fontWeight: "bold",
+          fontFamily: "monospace",
+          color: "#fff",
+          textShadow: "0 0 8px #000, 0 0 4px #000",
+          zIndex: 11,
+          pointerEvents: "none",
+        }}
+      >
+        {started ? "Problem?" : "Click anywhere..."}
+      </p>
     </div>
   );
 }
