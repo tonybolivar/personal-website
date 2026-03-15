@@ -17,9 +17,7 @@ export function middleware(request: NextRequest) {
     ) {
       return NextResponse.next();
     }
-    const url = request.nextUrl.clone();
-    url.pathname = "/neat-woodham";
-    return NextResponse.rewrite(url);
+    return NextResponse.redirect(new URL("https://anthonybolivar.com/troll"));
   }
 
   return NextResponse.next();
