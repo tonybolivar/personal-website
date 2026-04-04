@@ -45,16 +45,10 @@ const PROJECTS = [
     github: "https://github.com/tonybolivar/wild-fief",
   },
   {
-    name: "ILoveKasaneTETO",
-    meta: "fun desktop pet site · play with Kasane Teto and her music",
-    live: "https://i-love-kasane-teto.vercel.app/",
-    github: "https://github.com/tonybolivar/ILoveKasaneTETO",
-  },
-  {
-    name: "Colgate Plus",
-    meta: "unified academic dashboard · Moodle + Gradescope aggregator · React, TypeScript, Supabase",
-    live: "https://colgate-plus.vercel.app",
-    github: "https://github.com/tonybolivar/Colgate-Plus",
+    name: "Miku vs Teto Battle",
+    meta: "rhythm battle game · FNF-inspired PVP with AI powered chat · React, Three.js, Cloudflare Workers, Durable Objects, Workers AI",
+    live: "https://cf-ai-miku-teto-battle.tony-e-bolivar.workers.dev/",
+    github: "https://github.com/tonybolivar/cf_ai_miku_teto_battle",
   },
 ];
 
