@@ -6,12 +6,11 @@ export function middleware(request: NextRequest) {
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     request.headers.get("x-real-ip") ||
     "unknown";
+  const host = request.headers.get("host") ?? "";
   const path = request.nextUrl.pathname;
   const timestamp = new Date().toISOString();
 
-  console.log(`[VISITOR] ${timestamp} | IP: ${ip} | Path: ${path}`);
-
-  const host = request.headers.get("host") ?? "";
+  console.log(`[VISITOR] ${timestamp} | Host: ${host} | IP: ${ip} | Path: ${path}`);
 
   if (host === "neatwoodham.com" || host === "www.neatwoodham.com") {
     const { pathname } = request.nextUrl;
@@ -38,4 +37,5 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
+
 
