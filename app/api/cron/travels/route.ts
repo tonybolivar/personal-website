@@ -17,6 +17,22 @@ export async function GET(req: Request) {
     return new Response("unauthorized", { status: 401 });
   }
 
+  try {
+    return await run();
+  } catch (err) {
+    console.error("[cron/travels] fatal", err);
+    return Response.json(
+      {
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+      },
+      { status: 500 },
+    );
+  }
+}
+
+async function run() {
   const started = Date.now();
   const files = await fetchSyncFiles();
   const fetchedMs = Date.now() - started;
