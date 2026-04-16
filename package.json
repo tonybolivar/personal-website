@@ -12,15 +12,26 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@turf/boolean-point-in-polygon": "^7.3.4",
+    "@turf/helpers": "^7.3.4",
+    "@turf/simplify": "^7.3.4",
     "@vercel/analytics": "^1.6.1",
+    "@vercel/blob": "^2.3.3",
     "canvas-confetti": "^1.9.4",
+    "d3-contour": "^4.0.2",
+    "dropbox": "^10.34.0",
+    "maplibre-gl": "^4.7.1",
     "next": "14.1.0",
+    "node-fetch": "^2.7.0",
+    "polygon-clipping": "^0.15.7",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
     "@types/canvas-confetti": "^1.9.0",
+    "@types/d3-contour": "^3.0.6",
     "@types/node": "^20",
+    "@types/node-fetch": "^2.6.13",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",

@@ -82,3 +82,33 @@ html, body {
   border: none;
   border-top: 1px solid rgba(18, 18, 18, 0.18);
 }
+
+/* travels page — city markers on the map */
+.travels-city-marker {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  font-family: Georgia, "Times New Roman", serif;
+  transform: translate(-4px, 0);
+}
+.travels-city-dot {
+  width: 6px;
+  height: 6px;
+  background: #b30000;
+  border: 1px solid #121212;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.travels-city-label {
+  font-size: 11px;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: #121212;
+  background: rgba(246, 241, 230, 0.85);
+  padding: 1px 5px;
+  border: 1px solid rgba(18, 18, 18, 0.15);
+  white-space: nowrap;
+}

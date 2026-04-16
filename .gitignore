@@ -41,3 +41,7 @@ out
 .env*
 .vercel
 .DS_Store
+
+# local Fog of World dev data (real travel coords; do NOT commit)
+public/travels-demo.json
+lib/fog/__tests__/fixtures/

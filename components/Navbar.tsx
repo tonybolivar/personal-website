@@ -10,7 +10,7 @@ const hoverStyle: React.CSSProperties = {
   textDecorationColor: "var(--accent)",
 };
 
-type HoverKey = "experience" | "about" | "contact" | "resume";
+type HoverKey = "experience" | "travels" | "about" | "contact" | "resume";
 
 function Navbar() {
   const pathname = usePathname();
@@ -32,6 +32,14 @@ function Navbar() {
         style={hovered === "experience" ? hoverStyle : undefined}
       >
         <a href="/">experience</a>
+      </li>
+
+      <li
+        className={`${linkBase} ${pathname === "/travels" ? active : inactive}`}
+        onMouseEnter={() => setHovered("travels")}
+        style={hovered === "travels" ? hoverStyle : undefined}
+      >
+        <a href="/travels">travels</a>
       </li>
 
       <li

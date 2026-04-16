@@ -18,5 +18,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: "https://anthonybolivar.com",
       lastModified: new Date(),
     },
+    {
+      url: "https://anthonybolivar.com/about",
+      lastModified: new Date(),
+    },
+    {
+      url: "https://anthonybolivar.com/travels",
+      lastModified: new Date(),
+    },
   ];
 }
