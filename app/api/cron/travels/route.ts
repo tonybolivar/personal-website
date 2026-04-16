@@ -77,7 +77,7 @@ async function run() {
 
   const body = JSON.stringify(payload);
   const blob = await put(BLOB_KEY, body, {
-    access: "public",
+    access: "private",
     contentType: "application/geo+json",
     cacheControlMaxAge: 3600,
     allowOverwrite: true,

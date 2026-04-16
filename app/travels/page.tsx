@@ -1,4 +1,4 @@
-import { list } from "@vercel/blob";
+import { get } from "@vercel/blob";
 import { Radio_Canada } from "next/font/google";
 import type { FeatureCollection } from "geojson";
 import TravelsNav from "./TravelsNav";
@@ -35,12 +35,10 @@ type TravelsPayload = FeatureCollection & { metadata: TravelsMeta };
 
 async function loadTravels(): Promise<TravelsPayload | null> {
   try {
-    const { blobs } = await list({ prefix: "travels/" });
-    const latest = blobs.find((b) => b.pathname === "travels/latest.json");
-    if (!latest) return null;
-    const res = await fetch(latest.url, { next: { revalidate: 300 } });
-    if (!res.ok) return null;
-    return (await res.json()) as TravelsPayload;
+    const result = await get("travels/latest.json", { access: "private" });
+    if (!result || result.statusCode !== 200) return null;
+    const text = await new Response(result.stream).text();
+    return JSON.parse(text) as TravelsPayload;
   } catch {
     if (process.env.NODE_ENV !== "production") {
       try {
