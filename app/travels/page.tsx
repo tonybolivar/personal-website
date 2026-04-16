@@ -7,7 +7,7 @@ import StatsBar from "./StatsBar";
 
 const radio = Radio_Canada({ subsets: ["latin"], weight: ["400", "600"] });
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 interface RegionEntry {
   name: string;
