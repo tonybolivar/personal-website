@@ -39,10 +39,10 @@ const PROJECTS = [
     github: "",
   },
   {
-    name: "Wild Fief",
-    meta: "lore platform · D3.js force graph, Leaflet map, Fuse.js search · Astro, TypeScript",
-    live: "https://wild-fief.vercel.app",
-    github: "https://github.com/tonybolivar/wild-fief",
+    name: "Three Yakuza",
+    meta: "browser-native Three.js loaders for Yakuza / Like a Dragon game assets · .gmt/.gmd/.par parsers, WebGL, TypeScript",
+    live: "https://three-yakuza-gmt-viewer.vercel.app",
+    github: "https://github.com/tonybolivar/three-yakuza",
   },
   {
     name: "Miku vs Teto Battle",
