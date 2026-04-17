@@ -309,16 +309,15 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities }:
           className="absolute pointer-events-none text-[11px] font-mono bg-[rgba(246,241,230,0.95)] px-2 py-1 border border-[rgba(18,18,18,0.25)] leading-4 shadow-sm"
           style={{ left: hover.x + 14, top: hover.y + 14 }}
         >
-          <div className="text-[9px] uppercase tracking-wider ink-muted mb-[1px]">in this clearing</div>
           <div>
             <span className="text-[var(--accent)] font-semibold">{hover.blocks.toLocaleString()}</span>{" "}
-            <span className="ink-muted">visited blocks</span>
+            <span className="ink-muted">600&nbsp;m cells explored</span>
           </div>
           <div>
             <span className="text-[var(--accent)] font-semibold">
               ~{(hover.blocks * 0.36).toFixed(hover.blocks * 0.36 >= 100 ? 0 : 1)}
             </span>{" "}
-            <span className="ink-muted">km² defogged</span>
+            <span className="ink-muted">km² of ground</span>
           </div>
         </div>
       )}
