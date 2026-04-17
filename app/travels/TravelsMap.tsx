@@ -50,7 +50,21 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
     cities: true,
     photos: true,
   });
-  const [activePhoto, setActivePhoto] = useState<PhotoLite | null>(null);
+  const [photoView, setPhotoView] = useState<{
+    list: PhotoLite[];
+    index: number;
+  } | null>(null);
+
+  const openPhoto = (list: PhotoLite[], index: number) => {
+    const p = list[index];
+    if (!p) return;
+    setPhotoView({ list, index });
+    const m = mapRef.current;
+    if (m) {
+      const targetZoom = Math.max(m.getZoom(), 10);
+      m.easeTo({ center: [p.lng, p.lat], zoom: targetZoom, duration: 600 });
+    }
+  };
 
   useEffect(() => {
     const el = containerRef.current;
@@ -196,8 +210,14 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             const f = ev.features?.[0];
             if (!f) return;
             const props = f.properties as { name?: string; blocks?: number };
-            const fb = geomBbox(f as Feature);
-            if (!props.name || !fb) return;
+            if (!props.name) return;
+            // queryRenderedFeatures clips geometry to the viewport, so use
+            // the original feature from the prop list for an accurate bbox.
+            const originalFeat = (visitedStates ?? []).find(
+              (s) => (s.properties as { name?: string })?.name === props.name,
+            ) as Feature | undefined;
+            const fb = geomBbox((originalFeat ?? (f as Feature)) as Feature);
+            if (!fb) return;
             const photosInState = (photos ?? []).filter(
               (p) =>
                 p.lng >= fb[0] && p.lng <= fb[2] && p.lat >= fb[1] && p.lat <= fb[3],
@@ -380,13 +400,14 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
         // continental view.
         const photoMarkers: maplibregl.Marker[] = [];
         if (photos && photos.length > 0) {
-          for (const p of photos) {
+          for (let i = 0; i < photos.length; i++) {
+            const p = photos[i];
             const el = document.createElement("div");
             el.className = "travels-photo-marker";
             el.title = p.caption ?? "";
             el.addEventListener("click", (ev) => {
               ev.stopPropagation();
-              setActivePhoto(p);
+              openPhoto(photos, i);
             });
             photoMarkers.push(
               new maplibregl.Marker({ element: el, anchor: "center" })
@@ -527,12 +548,12 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
                 {statePopup.photos.length} photo{statePopup.photos.length === 1 ? "" : "s"}
               </div>
               <div className="grid grid-cols-3 gap-1">
-                {statePopup.photos.slice(0, 9).map((p) => (
+                {statePopup.photos.slice(0, 9).map((p, i) => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => {
-                      setActivePhoto(p);
+                      openPhoto(statePopup.photos, i);
                       setStatePopup(null);
                     }}
                     className="relative block aspect-square overflow-hidden border border-[rgba(18,18,18,0.25)] hover:border-[var(--accent)] transition-colors"
@@ -618,7 +639,29 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
         click near a red region or a state chip to zoom in · drag to pan · scroll to zoom
       </div>
 
-      {activePhoto && <PhotoModal photo={activePhoto} onClose={() => setActivePhoto(null)} />}
+      {photoView && (
+        <PhotoModal
+          photo={photoView.list[photoView.index]}
+          onClose={() => setPhotoView(null)}
+          onPrev={
+            photoView.list.length > 1
+              ? () => {
+                  const nextIndex = (photoView.index - 1 + photoView.list.length) % photoView.list.length;
+                  openPhoto(photoView.list, nextIndex);
+                }
+              : undefined
+          }
+          onNext={
+            photoView.list.length > 1
+              ? () => {
+                  const nextIndex = (photoView.index + 1) % photoView.list.length;
+                  openPhoto(photoView.list, nextIndex);
+                }
+              : undefined
+          }
+          position={{ index: photoView.index, total: photoView.list.length }}
+        />
+      )}
       {status && (
         <div className="absolute top-20 right-4 text-xs font-mono break-all bg-[rgba(246,241,230,0.95)] px-2 py-1 max-w-md" style={{ color: "#b30000" }}>
           {status}
