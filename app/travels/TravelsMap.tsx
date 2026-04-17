@@ -524,8 +524,17 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
 
       {statePopup && (
         <div
-          className="absolute text-xs bg-[rgba(246,241,230,0.97)] px-3 py-2 border border-[rgba(18,18,18,0.5)] shadow-md leading-5"
-          style={{ left: Math.min(statePopup.x + 16, 9999), top: statePopup.y + 16, minWidth: 200, maxWidth: 320 }}
+          className="absolute text-xs bg-[rgba(246,241,230,0.97)] px-3 py-2 border border-[rgba(18,18,18,0.5)] shadow-md leading-5 overflow-y-auto"
+          style={(() => {
+            const POPUP_W = 320;
+            const POPUP_H = 400;
+            const el = mapRef.current?.getContainer();
+            const w = el?.clientWidth ?? 9999;
+            const h = el?.clientHeight ?? 9999;
+            const left = Math.max(8, Math.min(statePopup.x + 16, w - POPUP_W - 8));
+            const top = Math.max(8, Math.min(statePopup.y + 16, h - POPUP_H - 8));
+            return { left, top, minWidth: 200, maxWidth: POPUP_W, maxHeight: POPUP_H };
+          })()}
         >
           <div className="flex flex-row items-baseline justify-between gap-2">
             <div className="font-semibold ink-body text-sm">{statePopup.name}</div>
