@@ -218,13 +218,22 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             type: "fill",
             source: "fog",
             paint: {
-              "fill-color": "#efe6d6",
+              // Darker, warmer parchment at low zoom so unexplored areas
+              // genuinely recede; fades to lighter wash up close so you
+              // can still orient against the underlying toner map.
+              "fill-color": [
+                "interpolate", ["linear"], ["zoom"],
+                0, "#9d8656",
+                4, "#ad986a",
+                8, "#c0ac82",
+                14, "#d6c59b",
+              ],
               "fill-opacity": [
                 "interpolate", ["linear"], ["zoom"],
-                0, 0.7,
-                4, 0.62,
-                8, 0.55,
-                14, 0.42,
+                0, 0.88,
+                4, 0.82,
+                8, 0.72,
+                14, 0.5,
               ],
               "fill-antialias": true,
             },
