@@ -52,27 +52,27 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
     const el = containerRef.current;
     if (!el || mapRef.current) return;
 
-    // Stamen Toner (lite) via Stadia — clean black-ink-on-paper basemap
-    // that matches the site's paper/ink aesthetic. No colors to fight the
-    // red explored fill.
+    // Stamen Terrain via Stadia — standard colored atlas basemap (green
+    // land, blue water, hillshade) so explored areas read like a real map
+    // peeking through the dark fog, matching the Fog of World app look.
     const keyParam = stadiaKey ? `?api_key=${stadiaKey}` : "";
     const style: maplibregl.StyleSpecification | string = mapKey
       ? `https://api.maptiler.com/maps/landscape/style.json?key=${mapKey}`
       : {
           version: 8,
           sources: {
-            toner: {
+            terrain: {
               type: "raster",
               tiles: [
-                `https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}.png${keyParam}`,
+                `https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}.jpg${keyParam}`,
               ],
               tileSize: 256,
-              maxzoom: 18,
+              maxzoom: 16,
               attribution:
                 "\u00a9 <a href='https://stadiamaps.com/'>Stadia Maps</a> \u00a9 <a href='https://stamen.com/'>Stamen Design</a> \u00a9 <a href='https://openstreetmap.org/copyright'>OpenStreetMap</a>",
             },
           },
-          layers: [{ id: "toner", type: "raster", source: "toner" }],
+          layers: [{ id: "terrain", type: "raster", source: "terrain" }],
         };
 
     let map: maplibregl.Map;
