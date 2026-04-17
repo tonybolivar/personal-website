@@ -1,8 +1,5 @@
-import { put, del } from "@vercel/blob";
-import { parse as parseExif } from "exifr";
-import sharp from "sharp";
+import { put } from "@vercel/blob";
 import {
-  contentHashId,
   readPhotoIndex,
   writePhotoIndex,
   type Photo,
@@ -10,12 +7,12 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 30;
 
-function unauthorized() {
-  return new Response("unauthorized", { status: 401 });
-}
-
+// Client pre-resizes to ~1600 px full + ~400 px thumb via canvas, so the
+// multipart body stays well under Vercel's 4.5 MB function limit. The
+// server does no image processing — just validates, stores both blobs,
+// and updates the photos/index.json.
 export async function POST(req: Request) {
   try {
     return await doUpload(req);
@@ -25,7 +22,6 @@ export async function POST(req: Request) {
       {
         ok: false,
         error: err instanceof Error ? err.message : String(err),
-        stack: err instanceof Error ? err.stack?.split("\n").slice(0, 6).join("\n") : undefined,
       },
       { status: 500 },
     );
@@ -34,56 +30,53 @@ export async function POST(req: Request) {
 
 async function doUpload(req: Request): Promise<Response> {
   const auth = req.headers.get("authorization");
-  const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
-  if (!process.env.CRON_SECRET || auth !== expected) return unauthorized();
+  if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new Response("unauthorized", { status: 401 });
+  }
 
   const form = await req.formData();
-  const file = form.get("file");
-  const caption = (form.get("caption") as string | null)?.trim() || null;
-  if (!(file instanceof File)) {
-    return Response.json({ error: "missing 'file'" }, { status: 400 });
+  const full = form.get("full");
+  const thumb = form.get("thumb");
+  const metaRaw = form.get("meta");
+  if (!(full instanceof File) || !(thumb instanceof File) || typeof metaRaw !== "string") {
+    return Response.json({ error: "missing full/thumb/meta" }, { status: 400 });
+  }
+  let meta: Partial<Photo>;
+  try {
+    meta = JSON.parse(metaRaw);
+  } catch {
+    return Response.json({ error: "meta is not valid JSON" }, { status: 400 });
+  }
+  if (
+    typeof meta.id !== "string" ||
+    !/^[a-f0-9]{16}$/.test(meta.id) ||
+    typeof meta.lng !== "number" ||
+    typeof meta.lat !== "number" ||
+    typeof meta.width !== "number" ||
+    typeof meta.height !== "number" ||
+    typeof meta.thumbWidth !== "number" ||
+    typeof meta.thumbHeight !== "number"
+  ) {
+    return Response.json({ error: "invalid meta payload" }, { status: 400 });
+  }
+  if (full.size > 5 * 1024 * 1024 || thumb.size > 1 * 1024 * 1024) {
+    return Response.json({ error: "resized image too large" }, { status: 413 });
   }
 
-  const buf = Buffer.from(await file.arrayBuffer());
-  const exif = await parseExif(buf).catch(() => null);
-  const lng = typeof exif?.longitude === "number" ? exif.longitude : null;
-  const lat = typeof exif?.latitude === "number" ? exif.latitude : null;
-  if (lng === null || lat === null) {
-    return Response.json(
-      { error: "no GPS coordinates in image EXIF" },
-      { status: 422 },
-    );
-  }
-  const takenAt: string | null = (() => {
-    const raw = exif?.DateTimeOriginal ?? exif?.CreateDate;
-    if (!raw) return null;
-    const d = raw instanceof Date ? raw : new Date(raw as string);
-    return Number.isFinite(d.getTime()) ? d.toISOString() : null;
-  })();
-
-  const id = contentHashId(buf);
-
-  const [fullBuf, thumbBuf] = await Promise.all([
-    sharp(buf)
-      .rotate()
-      .resize({ width: 1600, withoutEnlargement: true })
-      .jpeg({ quality: 82, mozjpeg: true })
-      .toBuffer({ resolveWithObject: true }),
-    sharp(buf)
-      .rotate()
-      .resize({ width: 400, withoutEnlargement: true })
-      .jpeg({ quality: 78 })
-      .toBuffer({ resolveWithObject: true }),
+  const id = meta.id;
+  const [fullBytes, thumbBytes] = await Promise.all([
+    full.arrayBuffer(),
+    thumb.arrayBuffer(),
   ]);
 
   await Promise.all([
-    put(`travels/photos/${id}.jpg`, fullBuf.data, {
+    put(`travels/photos/${id}.jpg`, Buffer.from(fullBytes), {
       access: "private",
       contentType: "image/jpeg",
       cacheControlMaxAge: 60 * 60 * 24 * 365,
       allowOverwrite: true,
     }),
-    put(`travels/photos/${id}-thumb.jpg`, thumbBuf.data, {
+    put(`travels/photos/${id}-thumb.jpg`, Buffer.from(thumbBytes), {
       access: "private",
       contentType: "image/jpeg",
       cacheControlMaxAge: 60 * 60 * 24 * 365,
@@ -95,37 +88,21 @@ async function doUpload(req: Request): Promise<Response> {
   const existing = index.find((p) => p.id === id);
   const photo: Photo = {
     id,
-    lng,
-    lat,
-    takenAt,
-    caption: caption ?? existing?.caption ?? null,
-    width: fullBuf.info.width,
-    height: fullBuf.info.height,
-    thumbWidth: thumbBuf.info.width,
-    thumbHeight: thumbBuf.info.height,
+    lng: meta.lng,
+    lat: meta.lat,
+    takenAt: typeof meta.takenAt === "string" ? meta.takenAt : null,
+    caption:
+      typeof meta.caption === "string" && meta.caption.trim()
+        ? meta.caption.trim()
+        : existing?.caption ?? null,
+    width: meta.width,
+    height: meta.height,
+    thumbWidth: meta.thumbWidth,
+    thumbHeight: meta.thumbHeight,
     uploadedAt: existing?.uploadedAt ?? new Date().toISOString(),
   };
   const next = [...index.filter((p) => p.id !== id), photo];
   await writePhotoIndex(next);
 
   return Response.json({ ok: true, photo, replaced: Boolean(existing) });
-}
-
-export async function DELETE(req: Request) {
-  const auth = req.headers.get("authorization");
-  const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
-  if (!process.env.CRON_SECRET || auth !== expected) return unauthorized();
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
-  if (!id) return Response.json({ error: "missing id" }, { status: 400 });
-  const index = await readPhotoIndex();
-  if (!index.some((p) => p.id === id)) {
-    return Response.json({ error: "not found" }, { status: 404 });
-  }
-  await Promise.all([
-    del(`travels/photos/${id}.jpg`).catch(() => undefined),
-    del(`travels/photos/${id}-thumb.jpg`).catch(() => undefined),
-  ]);
-  await writePhotoIndex(index.filter((p) => p.id !== id));
-  return Response.json({ ok: true });
 }

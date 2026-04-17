@@ -56,7 +56,7 @@ export default function AdminUploader() {
     const next: PendingFile[] = [];
     for (const file of Array.from(files)) {
       const key = `${file.name}:${file.size}:${file.lastModified}:${Math.random().toString(36).slice(2, 6)}`;
-      const entry: PendingFile = {
+      next.push({
         key,
         file,
         lng: null,
@@ -65,8 +65,7 @@ export default function AdminUploader() {
         caption: "",
         status: "checking",
         previewUrl: URL.createObjectURL(file),
-      };
-      next.push(entry);
+      });
     }
     setPending((prev) => [...prev, ...next]);
 
@@ -103,12 +102,38 @@ export default function AdminUploader() {
       updatePending(entry.key, { status: "error", message: "enter secret" });
       return;
     }
-    if (entry.status !== "ready" && entry.status !== "error") return;
-    updatePending(entry.key, { status: "uploading", message: undefined });
-    const form = new FormData();
-    form.append("file", entry.file);
-    if (entry.caption.trim()) form.append("caption", entry.caption.trim());
+    if (entry.lng === null || entry.lat === null) return;
+    updatePending(entry.key, { status: "uploading", message: "hashing…" });
+
     try {
+      const arrayBuf = await entry.file.arrayBuffer();
+      const id = await hashId(arrayBuf);
+
+      updatePending(entry.key, { message: "resizing…" });
+      const bitmap = await createImageBitmap(entry.file, { imageOrientation: "from-image" });
+      const full = await resizeToBlob(bitmap, 1600, 0.82);
+      const thumb = await resizeToBlob(bitmap, 400, 0.78);
+      bitmap.close();
+
+      const totalKb = Math.round((full.blob.size + thumb.blob.size) / 1024);
+      updatePending(entry.key, { message: `uploading ${totalKb} KB…` });
+      const form = new FormData();
+      form.append("full", new File([full.blob], `${id}.jpg`, { type: "image/jpeg" }));
+      form.append("thumb", new File([thumb.blob], `${id}-thumb.jpg`, { type: "image/jpeg" }));
+      form.append(
+        "meta",
+        JSON.stringify({
+          id,
+          lng: entry.lng,
+          lat: entry.lat,
+          takenAt: entry.takenAt,
+          caption: entry.caption.trim() || null,
+          width: full.width,
+          height: full.height,
+          thumbWidth: thumb.width,
+          thumbHeight: thumb.height,
+        }),
+      );
       const res = await fetch("/api/travels/photos/upload", {
         method: "POST",
         headers: { Authorization: `Bearer ${secret}` },
@@ -116,8 +141,7 @@ export default function AdminUploader() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({ error: res.statusText }));
-        updatePending(entry.key, { status: "error", message: body.error ?? `HTTP ${res.status}` });
-        return;
+        throw new Error(body.error ?? `HTTP ${res.status}`);
       }
       updatePending(entry.key, { status: "done", message: "pinned" });
       refresh();
@@ -138,7 +162,7 @@ export default function AdminUploader() {
   async function removePhoto(id: string) {
     if (!secret) return;
     if (!confirm(`delete photo ${id}?`)) return;
-    const res = await fetch(`/api/travels/photos/upload?id=${encodeURIComponent(id)}`, {
+    const res = await fetch(`/api/travels/photos/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${secret}` },
     });
@@ -223,7 +247,11 @@ export default function AdminUploader() {
                     {p.takenAt && ` · ${new Date(p.takenAt).toLocaleDateString()}`}
                   </span>
                 )}
-                {p.message && <span className="text-xs" style={{ color: p.status === "done" ? "#1a6e1a" : "#b30000" }}>{p.message}</span>}
+                {p.message && (
+                  <span className="text-xs" style={{ color: p.status === "done" ? "#1a6e1a" : p.status === "error" ? "#b30000" : "#5a5a5a" }}>
+                    {p.message}
+                  </span>
+                )}
                 {p.status === "ready" && (
                   <>
                     <input
@@ -283,12 +311,53 @@ export default function AdminUploader() {
 
 function statusClass(s: PendingFile["status"]): string {
   switch (s) {
-    case "checking": return "ink-muted";
-    case "ready": return "text-[var(--accent)]";
-    case "uploading": return "ink-muted";
-    case "done": return "text-[color:#1a6e1a]";
+    case "checking":
+    case "uploading":
+      return "ink-muted";
+    case "ready":
+      return "text-[var(--accent)]";
+    case "done":
+      return "text-[color:#1a6e1a]";
     case "no-gps":
     case "error":
-    default: return "text-[color:#b30000]";
+    default:
+      return "text-[color:#b30000]";
   }
+}
+
+async function hashId(buf: ArrayBuffer): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  const hex = Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return hex.slice(0, 16);
+}
+
+async function resizeToBlob(
+  bitmap: ImageBitmap,
+  maxWidth: number,
+  quality: number,
+): Promise<{ blob: Blob; width: number; height: number }> {
+  const ratio = bitmap.width > maxWidth ? maxWidth / bitmap.width : 1;
+  const width = Math.max(1, Math.round(bitmap.width * ratio));
+  const height = Math.max(1, Math.round(bitmap.height * ratio));
+  if (typeof OffscreenCanvas !== "undefined") {
+    const c = new OffscreenCanvas(width, height);
+    const ctx = c.getContext("2d");
+    if (!ctx) throw new Error("no 2d context");
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    const blob = await c.convertToBlob({ type: "image/jpeg", quality });
+    return { blob, width, height };
+  }
+  const c = document.createElement("canvas");
+  c.width = width;
+  c.height = height;
+  const ctx = c.getContext("2d");
+  if (!ctx) throw new Error("no 2d context");
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  const blob = await new Promise<Blob | null>((resolve) =>
+    c.toBlob(resolve, "image/jpeg", quality),
+  );
+  if (!blob) throw new Error("canvas toBlob failed");
+  return { blob, width, height };
 }
