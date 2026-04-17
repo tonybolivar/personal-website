@@ -218,22 +218,16 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             type: "fill",
             source: "fog",
             paint: {
-              // Darker, warmer parchment at low zoom so unexplored areas
-              // genuinely recede; fades to lighter wash up close so you
-              // can still orient against the underlying toner map.
-              "fill-color": [
-                "interpolate", ["linear"], ["zoom"],
-                0, "#9d8656",
-                4, "#ad986a",
-                8, "#c0ac82",
-                14, "#d6c59b",
-              ],
+              // Fog-of-World-style dark veil: unexplored land recedes into
+              // near-black, while the holes (explored regions) reveal the
+              // toner basemap and red fills at full brightness.
+              "fill-color": "#121212",
               "fill-opacity": [
                 "interpolate", ["linear"], ["zoom"],
-                0, 0.88,
-                4, 0.82,
-                8, 0.72,
-                14, 0.5,
+                0, 0.72,
+                4, 0.68,
+                8, 0.58,
+                14, 0.38,
               ],
               "fill-antialias": true,
             },
