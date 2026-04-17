@@ -12,19 +12,28 @@ interface CityEntry {
   rank: number;
 }
 
+interface StateEntry {
+  name: string;
+  blocks: number;
+  bbox: [number, number, number, number];
+}
+
 interface Props {
   geojson: FeatureCollection;
   bbox: [number, number, number, number] | null;
   mapKey: string;
   stadiaKey: string;
   cities?: CityEntry[];
+  states?: StateEntry[];
 }
 
-export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities }: Props) {
+export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, states }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [status, setStatus] = useState<string>("");
-  const [hover, setHover] = useState<{ x: number; y: number; blocks: number } | null>(null);
+  const [hover, setHover] = useState<{
+    x: number; y: number; blocks: number; where: string;
+  } | null>(null);
   const [projection, setProjection] = useState<"mercator" | "globe">("mercator");
 
   useEffect(() => {
@@ -184,15 +193,19 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities }:
           if (near.length) {
             let best = near[0];
             let bestDist = Infinity;
+            let bestCenter: [number, number] = [0, 0];
             for (const h of near) {
               const b = geomBbox(h as Feature);
               if (!b) continue;
-              const proj = map.project([(b[0] + b[2]) / 2, (b[1] + b[3]) / 2]);
+              const cx = (b[0] + b[2]) / 2;
+              const cy = (b[1] + b[3]) / 2;
+              const proj = map.project([cx, cy]);
               const d = (proj.x - ev.point.x) ** 2 + (proj.y - ev.point.y) ** 2;
-              if (d < bestDist) { bestDist = d; best = h; }
+              if (d < bestDist) { bestDist = d; best = h; bestCenter = [cx, cy]; }
             }
             const blocks = Number((best.properties as { blocks?: number })?.blocks ?? 0);
-            setHover({ x: ev.point.x, y: ev.point.y, blocks });
+            const where = describeLocation(bestCenter, cities, states);
+            setHover({ x: ev.point.x, y: ev.point.y, blocks, where });
           } else {
             setHover((prev) => (prev ? null : prev));
           }
@@ -309,15 +322,10 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities }:
           className="absolute pointer-events-none text-[11px] font-mono bg-[rgba(246,241,230,0.95)] px-2 py-1 border border-[rgba(18,18,18,0.25)] leading-4 shadow-sm"
           style={{ left: hover.x + 14, top: hover.y + 14 }}
         >
+          <div className="text-[10px] ink-body font-semibold leading-3 mb-[2px]">{hover.where}</div>
           <div>
             <span className="text-[var(--accent)] font-semibold">{hover.blocks.toLocaleString()}</span>{" "}
-            <span className="ink-muted">600&nbsp;m cells explored</span>
-          </div>
-          <div>
-            <span className="text-[var(--accent)] font-semibold">
-              ~{(hover.blocks * 0.36).toFixed(hover.blocks * 0.36 >= 100 ? 0 : 1)}
-            </span>{" "}
-            <span className="ink-muted">km² of ground</span>
+            <span className="ink-muted">600&nbsp;m cells · ~{(hover.blocks * 0.36).toFixed(hover.blocks * 0.36 >= 100 ? 0 : 1)} km²</span>
           </div>
         </div>
       )}
@@ -359,4 +367,48 @@ function geomBbox(feat: Feature): [number, number, number, number] | null {
     return null;
   }
   return Number.isFinite(minX) ? [minX, minY, maxX, maxY] : null;
+}
+
+// Haversine-ish distance in km.
+function distKm(a: [number, number], b: [number, number]): number {
+  const R = 6371;
+  const dLat = ((b[1] - a[1]) * Math.PI) / 180;
+  const dLng = ((b[0] - a[0]) * Math.PI) / 180;
+  const lat1 = (a[1] * Math.PI) / 180;
+  const lat2 = (b[1] * Math.PI) / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function describeLocation(
+  center: [number, number],
+  cities: CityEntry[] | undefined,
+  states: StateEntry[] | undefined,
+): string {
+  let state: StateEntry | null = null;
+  if (states) {
+    for (const s of states) {
+      if (
+        center[0] >= s.bbox[0] && center[0] <= s.bbox[2] &&
+        center[1] >= s.bbox[1] && center[1] <= s.bbox[3]
+      ) { state = s; break; }
+    }
+  }
+  let nearest: { city: CityEntry; d: number } | null = null;
+  if (cities && cities.length) {
+    for (const c of cities) {
+      const d = distKm(center, [c.lng, c.lat]);
+      if (!nearest || d < nearest.d) nearest = { city: c, d };
+    }
+  }
+  if (nearest && nearest.d <= 15) {
+    return state ? `${nearest.city.name}, ${state.name}` : nearest.city.name;
+  }
+  if (nearest && state) return `near ${nearest.city.name} · ${state.name}`;
+  if (nearest) return `near ${nearest.city.name}`;
+  if (state) return state.name;
+  const lngDir = center[0] >= 0 ? "E" : "W";
+  const latDir = center[1] >= 0 ? "N" : "S";
+  return `${Math.abs(center[1]).toFixed(2)}°${latDir} ${Math.abs(center[0]).toFixed(2)}°${lngDir}`;
 }

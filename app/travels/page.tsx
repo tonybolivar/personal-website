@@ -131,6 +131,7 @@ export default async function TravelsPage({
             mapKey={mapKey}
             stadiaKey={stadiaKey}
             cities={data.metadata.cities ?? []}
+            states={data.metadata.states ?? []}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
