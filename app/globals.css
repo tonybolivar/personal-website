@@ -116,12 +116,12 @@ html, body {
 /* travels page — photo markers */
 .travels-photo-marker {
   display: var(--photos-display, block);
-  width: 12px;
-  height: 12px;
-  background: #b30000;
+  width: 9px;
+  height: 9px;
+  background: #121212;
   border: 1.5px solid var(--paper);
   border-radius: 50%;
-  box-shadow: 0 0 0 1px rgba(18, 18, 18, 0.45), 0 1px 3px rgba(18, 18, 18, 0.25);
+  box-shadow: 0 0 0 1px rgba(18, 18, 18, 0.45), 0 1px 3px rgba(18, 18, 18, 0.2);
   cursor: pointer;
   pointer-events: auto;
   /* Zoom-responsive scale — set by TravelsMap on zoom events. */
@@ -130,5 +130,6 @@ html, body {
   transition: transform 120ms ease;
 }
 .travels-photo-marker:hover {
-  transform: scale(calc(var(--photo-marker-scale, 1) * 1.35));
+  transform: scale(calc(var(--photo-marker-scale, 1) * 1.4));
+  background: #b30000;
 }
