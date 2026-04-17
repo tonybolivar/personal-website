@@ -127,15 +127,16 @@ html, body {
   transform: translate(-4px, 0);
 }
 .travels-almamater-badge {
-  width: 18px;
-  height: 18px;
+  width: 12px;
+  height: 12px;
   background: #821019; /* Colgate maroon */
   color: #f6f1e6;
-  border: 2px solid var(--paper);
+  border: 1.5px solid var(--paper);
   border-radius: 50%;
-  box-shadow: 0 0 0 1px #121212, 0 2px 4px rgba(18, 18, 18, 0.35);
+  box-shadow: 0 0 0 1px #121212, 0 1px 3px rgba(18, 18, 18, 0.3);
   font-weight: 700;
-  font-size: 11px;
+  font-size: 8px;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -143,18 +144,19 @@ html, body {
   transition: transform 120ms ease;
 }
 .travels-almamater:hover .travels-almamater-badge {
-  transform: scale(1.2);
+  transform: scale(1.25);
 }
 .travels-almamater-label {
-  font-size: 12px;
+  font-size: 11px;
   font-style: italic;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: #821019;
   background: rgba(246, 241, 230, 0.9);
-  padding: 1px 6px;
+  padding: 0 4px;
   border: 1px solid #821019;
   white-space: nowrap;
+  line-height: 1.35;
 }
 
 .travels-photo-marker {
