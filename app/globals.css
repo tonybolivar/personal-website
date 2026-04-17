@@ -85,7 +85,7 @@ html, body {
 
 /* travels page — city markers on the map */
 .travels-city-marker {
-  display: flex;
+  display: var(--cities-display, flex);
   flex-direction: row;
   align-items: center;
   gap: 4px;

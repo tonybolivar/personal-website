@@ -40,6 +40,13 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
   const [statePopup, setStatePopup] = useState<{
     x: number; y: number; name: string; blocks: number; bbox: [number, number, number, number];
   } | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [layers, setLayers] = useState({
+    fog: true,
+    states: true,
+    countries: true,
+    cities: true,
+  });
 
   useEffect(() => {
     const el = containerRef.current;
@@ -399,15 +406,34 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
       try {
         map.setProjection({ type: projection });
       } catch (err) {
-        // Silently ignore — maplibre rejects setProjection during style
-        // transitions, and our initial render sets mercator which is the
-        // default anyway.
         console.warn("setProjection skipped:", err);
       }
     };
     if (map.isStyleLoaded()) apply();
     else map.once("style.load", apply);
   }, [projection]);
+
+  // Sync layer visibility toggles with the map
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const setVis = (id: string, visible: boolean) => {
+      if (!map.getLayer(id)) return;
+      map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+    };
+    const apply = () => {
+      setVis("fog-fill", layers.fog);
+      setVis("visited-states-fill", layers.states);
+      setVis("visited-states-outline", layers.states);
+      setVis("visited-countries-fill", layers.countries);
+      setVis("visited-countries-outline", layers.countries);
+      // City HTML markers are not MapLibre layers; hide via CSS.
+      const root = map.getContainer();
+      root.style.setProperty("--cities-display", layers.cities ? "flex" : "none");
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once("idle", apply);
+  }, [layers]);
 
   return (
     <>
@@ -473,14 +499,49 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setProjection((p) => (p === "mercator" ? "globe" : "mercator"))}
-        className="absolute top-3 left-3 text-xs px-2 py-1 bg-[rgba(246,241,230,0.95)] border border-[rgba(18,18,18,0.25)] hover:bg-[var(--accent)] hover:text-[var(--paper)] transition-colors"
-        title="toggle map projection"
-      >
-        {projection === "mercator" ? "globe" : "mercator"}
-      </button>
+      <div className="absolute top-3 left-3 flex flex-col items-start gap-1">
+        <div className="flex flex-row gap-1">
+          <button
+            type="button"
+            onClick={() => setProjection((p) => (p === "mercator" ? "globe" : "mercator"))}
+            className="text-xs px-2 py-1 bg-[rgba(246,241,230,0.95)] border border-[rgba(18,18,18,0.25)] hover:bg-[var(--accent)] hover:text-[var(--paper)] transition-colors"
+            title="toggle map projection"
+          >
+            {projection === "mercator" ? "globe" : "mercator"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSettingsOpen((v) => !v)}
+            className={`text-xs px-2 py-1 border border-[rgba(18,18,18,0.25)] transition-colors ${settingsOpen ? "bg-[var(--accent)] text-[var(--paper)]" : "bg-[rgba(246,241,230,0.95)] hover:bg-[var(--accent)] hover:text-[var(--paper)]"}`}
+            title="layer settings"
+            aria-expanded={settingsOpen}
+          >
+            layers
+          </button>
+        </div>
+        {settingsOpen && (
+          <div className="text-xs bg-[rgba(246,241,230,0.97)] px-3 py-2 border border-[rgba(18,18,18,0.4)] shadow-md flex flex-col gap-1">
+            {(
+              [
+                ["fog", "fog overlay"],
+                ["states", "state borders"],
+                ["countries", "country borders"],
+                ["cities", "city labels"],
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key} className="flex flex-row items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={layers[key]}
+                  onChange={(e) => setLayers((prev) => ({ ...prev, [key]: e.target.checked }))}
+                  className="accent-[var(--accent)]"
+                />
+                <span className="ink-body">{label}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="absolute bottom-3 left-3 pointer-events-none text-xs ink-muted bg-[rgba(246,241,230,0.9)] px-2 py-1 border border-[rgba(18,18,18,0.15)]">
         click near a red region or a state chip to zoom in · drag to pan · scroll to zoom
