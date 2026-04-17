@@ -106,7 +106,16 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
       return;
     }
     mapRef.current = map;
-    map.on("error", (e) => setStatus(`map error: ${e.error?.message ?? "unknown"}`));
+    map.on("error", (e) => {
+      // MapLibre cancels in-flight tile fetches when the viewport changes
+      // quickly; those surface here as "Failed to fetch" AJAXErrors with
+      // status 0. They're not actionable, so swallow them.
+      const msg = e.error?.message ?? "";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const status = (e.error as any)?.status;
+      if (status === 0 || /failed to fetch/i.test(msg) || /aborted/i.test(msg)) return;
+      setStatus(`map error: ${msg || "unknown"}`);
+    });
     map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
     map.addControl(new maplibregl.NavigationControl({ showCompass: false, visualizePitch: false }), "top-right");
 
