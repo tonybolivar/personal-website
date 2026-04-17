@@ -67,14 +67,15 @@ const here = (f: string) => resolve(import.meta.dirname, "fixtures", f);
   );
   assert.ok(explored, "expected explored feature");
   assert.ok(fog, "expected fog feature");
-  const mp = explored!.geometry;
-  assert.equal(mp.type, "MultiPolygon");
-  const polys = (mp as any).coordinates.length;
-  assert.ok(polys > 0, "expected at least one explored polygon");
-  const vertexCount = (mp as any).coordinates.reduce(
-    (s: number, p: any) => s + p.reduce((ss: number, r: any) => ss + r.length, 0),
-    0,
+  const exploredAll = fc.features.filter(
+    (f) => (f.properties as { kind?: string })?.kind === "explored",
   );
+  assert.ok(exploredAll.length > 0, "expected at least one explored polygon");
+  const polys = exploredAll.length;
+  const vertexCount = exploredAll.reduce((s, f) => {
+    if (f.geometry.type !== "Polygon") return s;
+    return s + (f.geometry.coordinates as any).reduce((ss: number, r: any) => ss + r.length, 0);
+  }, 0);
   const bbox = geoJsonBbox(fc)!;
   assert.ok(bbox[0] > 108 && bbox[2] < 112, `unexpected bbox: ${bbox.join(",")}`);
   console.log(`ok  polygonize: ${polys} explored, ${(fog!.geometry as any).coordinates.length} fog`);

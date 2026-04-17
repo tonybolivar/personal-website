@@ -76,16 +76,26 @@ async function run() {
   };
 
   const body = JSON.stringify(payload);
-  const blob = await put(BLOB_KEY, body, {
-    access: "private",
-    contentType: "application/geo+json",
-    cacheControlMaxAge: 3600,
-    allowOverwrite: true,
-  });
+  const today = new Date().toISOString().slice(0, 10);
+  const [blob] = await Promise.all([
+    put(BLOB_KEY, body, {
+      access: "private",
+      contentType: "application/geo+json",
+      cacheControlMaxAge: 3600,
+      allowOverwrite: true,
+    }),
+    put(`travels/history/${today}.json`, body, {
+      access: "private",
+      contentType: "application/geo+json",
+      cacheControlMaxAge: 3600 * 24 * 365,
+      allowOverwrite: true,
+    }),
+  ]);
 
   return Response.json({
     ok: true,
     url: blob.url,
+    snapshot: today,
     ...payload.metadata,
     bytes: body.length,
     skipped,

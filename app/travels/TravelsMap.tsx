@@ -24,6 +24,8 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities }:
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [status, setStatus] = useState<string>("");
+  const [hover, setHover] = useState<{ x: number; y: number; blocks: number } | null>(null);
+  const [projection, setProjection] = useState<"mercator" | "globe">("mercator");
 
   useEffect(() => {
     const el = containerRef.current;
@@ -175,11 +177,27 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities }:
         });
         map.on("mousemove", (ev) => {
           const near = map.queryRenderedFeatures(
-            [[ev.point.x - 40, ev.point.y - 40], [ev.point.x + 40, ev.point.y + 40]],
+            [[ev.point.x - 20, ev.point.y - 20], [ev.point.x + 20, ev.point.y + 20]],
             { layers: ["explored-fill"] },
           );
           map.getCanvas().style.cursor = near.length ? "pointer" : "";
+          if (near.length) {
+            let best = near[0];
+            let bestDist = Infinity;
+            for (const h of near) {
+              const b = geomBbox(h as Feature);
+              if (!b) continue;
+              const proj = map.project([(b[0] + b[2]) / 2, (b[1] + b[3]) / 2]);
+              const d = (proj.x - ev.point.x) ** 2 + (proj.y - ev.point.y) ** 2;
+              if (d < bestDist) { bestDist = d; best = h; }
+            }
+            const blocks = Number((best.properties as { blocks?: number })?.blocks ?? 0);
+            setHover({ x: ev.point.x, y: ev.point.y, blocks });
+          } else {
+            setHover((prev) => (prev ? null : prev));
+          }
         });
+        map.on("mouseout", () => setHover(null));
 
         // City labels — HTML markers with a red dot + small serif name plate.
         // Scale visibility by NE scalerank: rank 0-4 visible at all zooms,
@@ -256,6 +274,16 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities }:
     };
   }, [geojson, bbox, mapKey, stadiaKey]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    try {
+      map.setProjection({ type: projection });
+    } catch (err) {
+      setStatus(`projection: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }, [projection]);
+
   return (
     <>
       <div
@@ -268,6 +296,25 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities }:
             "0 0 0 1px var(--paper) inset, 0 0 0 4px rgba(18,18,18,0.15) inset, 0 2px 14px rgba(18,18,18,0.12)",
         }}
       />
+
+      {hover && (
+        <div
+          className="absolute pointer-events-none text-[11px] font-mono bg-[rgba(246,241,230,0.95)] px-2 py-1 border border-[rgba(18,18,18,0.25)] leading-4"
+          style={{ left: hover.x + 14, top: hover.y + 14 }}
+        >
+          <span className="text-[var(--accent)] font-semibold">{hover.blocks}</span> blocks · ~
+          {(hover.blocks * 0.36).toFixed(hover.blocks * 0.36 >= 100 ? 0 : 1)} km²
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => setProjection((p) => (p === "mercator" ? "globe" : "mercator"))}
+        className="absolute top-3 left-3 text-xs px-2 py-1 bg-[rgba(246,241,230,0.95)] border border-[rgba(18,18,18,0.25)] hover:bg-[var(--accent)] hover:text-[var(--paper)] transition-colors"
+        title="toggle map projection"
+      >
+        {projection === "mercator" ? "globe" : "mercator"}
+      </button>
 
       <div className="absolute bottom-3 left-3 pointer-events-none text-xs ink-muted bg-[rgba(246,241,230,0.9)] px-2 py-1 border border-[rgba(18,18,18,0.15)]">
         click near a red region or a state chip to zoom in · drag to pan · scroll to zoom

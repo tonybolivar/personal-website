@@ -21,14 +21,14 @@ function roundCoord(n: number): number {
 
 export function tilesToGeoJson(tiles: ParsedTile[]): FeatureCollection {
   const exploredCoords = buildExploredMultiPolygon(tiles);
-  const fogCoords = buildFogMultiPolygon(exploredCoords);
+  const fogCoords = buildFogMultiPolygon(exploredCoords.map((e) => e.poly));
 
   // One Polygon feature per component so clicking returns just that
   // region's polygon (not the whole MultiPolygon's bbox).
-  const exploredFeatures: Feature[] = exploredCoords.map((poly, i) => ({
+  const exploredFeatures: Feature[] = exploredCoords.map((item, i) => ({
     type: "Feature",
-    properties: { kind: "explored", id: i },
-    geometry: { type: "Polygon", coordinates: poly },
+    properties: { kind: "explored", id: i, blocks: item.blocks },
+    geometry: { type: "Polygon", coordinates: item.poly },
   }));
   const fog: Feature<MultiPolygon> = {
     type: "Feature",
@@ -38,7 +38,7 @@ export function tilesToGeoJson(tiles: ParsedTile[]): FeatureCollection {
   return { type: "FeatureCollection", features: [fog, ...exploredFeatures] };
 }
 
-function buildExploredMultiPolygon(tiles: ParsedTile[]): Position[][][] {
+function buildExploredMultiPolygon(tiles: ParsedTile[]): Array<{ poly: Position[][]; blocks: number }> {
   const populated = new Map<BlockKey, [number, number]>();
   for (const t of tiles) {
     for (const blk of t.blocks) {
@@ -72,19 +72,23 @@ function buildExploredMultiPolygon(tiles: ParsedTile[]): Position[][][] {
     components.push(comp);
   }
 
-  const mergedCoords: Position[][][] = [];
+  const out: Array<{ poly: Position[][]; blocks: number }> = [];
   for (const comp of components) {
     const rects = comp.map(([gbx, gby]) => [blockRectLngLat(gbx, gby)]);
     if (rects.length === 0) continue;
     try {
       const [first, ...rest] = rects as unknown as Parameters<typeof polygonClipping.union>;
       const unioned = polygonClipping.union(first, ...rest) as unknown as Position[][][];
-      for (const poly of unioned) mergedCoords.push(poly);
+      // Usually one polygon per component; if union emits multiple pieces
+      // (rare for rectilinear input), split the block count proportionally.
+      const perPolyBlocks =
+        unioned.length === 1 ? comp.length : Math.max(1, Math.round(comp.length / unioned.length));
+      for (const poly of unioned) out.push({ poly, blocks: perPolyBlocks });
     } catch {
-      for (const r of rects) mergedCoords.push(r);
+      for (const r of rects) out.push({ poly: r, blocks: 1 });
     }
   }
-  return mergedCoords;
+  return out;
 }
 
 // Web Mercator clips at ~85.05°; this bbox covers the entire renderable world.

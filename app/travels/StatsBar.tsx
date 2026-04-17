@@ -1,5 +1,15 @@
 "use client";
 
+// Each Fog of World pixel is ~9.4 m on a side at the equator (block is
+// 600 m / 64 px). 88 m² is a fine constant-latitude approximation.
+const PIXEL_AREA_M2 = 88;
+
+function formatKm2(m2: number): string {
+  const km2 = m2 / 1_000_000;
+  if (km2 >= 100) return `${Math.round(km2).toLocaleString()} km²`;
+  return `${km2.toFixed(1)} km²`;
+}
+
 interface RegionEntry {
   name: string;
   blocks: number;
@@ -57,8 +67,10 @@ export default function StatsBar({ countries, states, exploredCount, visitedPixe
       )}
       <span className="ml-2">
         <span className="ink-body font-semibold">{exploredCount}</span> regions ·{" "}
-        <span className="ink-body font-semibold">{visitedPixelCount.toLocaleString()}</span>{" "}
-        cells
+        <span className="ink-body font-semibold">
+          {formatKm2(visitedPixelCount * PIXEL_AREA_M2)}
+        </span>{" "}
+        defogged
       </span>
       <span className="ml-auto">{syncedLabel}</span>
     </div>

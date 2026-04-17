@@ -1,9 +1,10 @@
-import { get } from "@vercel/blob";
+import { get, list } from "@vercel/blob";
 import { Radio_Canada } from "next/font/google";
 import type { FeatureCollection } from "geojson";
 import TravelsNav from "./TravelsNav";
 import TravelsMap from "./TravelsMap";
 import StatsBar from "./StatsBar";
+import SnapshotPicker from "./SnapshotPicker";
 
 const radio = Radio_Canada({ subsets: ["latin"], weight: ["400", "600"] });
 
@@ -33,9 +34,10 @@ interface TravelsMeta {
 
 type TravelsPayload = FeatureCollection & { metadata: TravelsMeta };
 
-async function loadTravels(): Promise<TravelsPayload | null> {
+async function loadTravels(snapshot: string | null = null): Promise<TravelsPayload | null> {
+  const key = snapshot ? `travels/history/${snapshot}.json` : "travels/latest.json";
   try {
-    const result = await get("travels/latest.json", { access: "private" });
+    const result = await get(key, { access: "private" });
     if (!result || result.statusCode !== 200) return null;
     const text = await new Response(result.stream).text();
     return JSON.parse(text) as TravelsPayload;
@@ -65,8 +67,29 @@ function formatSyncedAt(iso: string): string {
   return `${days}d ago`;
 }
 
-export default async function TravelsPage() {
-  const data = await loadTravels();
+async function listSnapshots(): Promise<string[]> {
+  try {
+    const { blobs } = await list({ prefix: "travels/history/" });
+    const dates: string[] = [];
+    for (const b of blobs) {
+      const m = b.pathname.match(/travels\/history\/(\d{4}-\d{2}-\d{2})\.json$/);
+      if (m) dates.push(m[1]);
+    }
+    dates.sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
+    return dates;
+  } catch {
+    return [];
+  }
+}
+
+export default async function TravelsPage({
+  searchParams,
+}: {
+  searchParams?: { snapshot?: string };
+}) {
+  const requestedSnapshot = searchParams?.snapshot ?? null;
+  const snapshot = requestedSnapshot && /^\d{4}-\d{2}-\d{2}$/.test(requestedSnapshot) ? requestedSnapshot : null;
+  const [data, snapshotsList] = await Promise.all([loadTravels(snapshot), listSnapshots()]);
   const mapKey = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
   const stadiaKey = process.env.NEXT_PUBLIC_STADIA_API_KEY ?? "";
   const exploredCount = data
@@ -84,7 +107,10 @@ export default async function TravelsPage() {
           </a>
           <span className="ink-muted text-sm">/ travels</span>
         </div>
-        <TravelsNav />
+        <div className="flex flex-row items-center gap-4">
+          <SnapshotPicker snapshots={snapshotsList} selected={snapshot} />
+          <TravelsNav />
+        </div>
       </header>
 
       {data ? (
