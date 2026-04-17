@@ -124,8 +124,8 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             source: "visited-countries",
             paint: {
               "line-color": "#121212",
-              "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.9, 4, 1.2, 8, 1.6],
-              "line-opacity": 0.55,
+              "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.6, 4, 0.8, 8, 1.0],
+              "line-opacity": 0.4,
             },
           });
         }
@@ -158,14 +158,14 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
               "line-width": [
                 "case",
                 ["boolean", ["feature-state", "hover"], false],
-                3,
-                1.4,
+                2.2,
+                0.8,
               ],
               "line-opacity": [
                 "case",
                 ["boolean", ["feature-state", "hover"], false],
-                1,
-                0.7,
+                0.9,
+                0.45,
               ],
             },
           });
