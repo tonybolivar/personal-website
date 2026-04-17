@@ -55,7 +55,7 @@ async function run() {
   const bbox = geoJsonBbox(fc);
   const polygonizeMs = Date.now() - started - fetchedMs - parsedMs;
 
-  const { countries, states, cities } = await regionsForTiles(tiles);
+  const { countries, states, cities, visitedStates, visitedCountries } = await regionsForTiles(tiles);
   const regionsMs = Date.now() - started - fetchedMs - parsedMs - polygonizeMs;
 
   const payload = {
@@ -71,6 +71,8 @@ async function run() {
       countries,
       states,
       cities,
+      visitedStates,
+      visitedCountries,
       timings: { fetchedMs, parsedMs, polygonizeMs, regionsMs },
     },
   };

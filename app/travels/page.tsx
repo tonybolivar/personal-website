@@ -1,6 +1,6 @@
 import { get, list } from "@vercel/blob";
 import { Radio_Canada } from "next/font/google";
-import type { FeatureCollection } from "geojson";
+import type { Feature, FeatureCollection } from "geojson";
 import TravelsNav from "./TravelsNav";
 import TravelsMap from "./TravelsMap";
 import StatsBar from "./StatsBar";
@@ -21,6 +21,11 @@ interface CityEntry {
   lat: number;
   rank: number;
 }
+interface VisitedAdminFeature {
+  type: "Feature";
+  properties: { name: string; blocks: number };
+  geometry: unknown;
+}
 interface TravelsMeta {
   generatedAt: string;
   tileCount: number;
@@ -30,6 +35,8 @@ interface TravelsMeta {
   countries?: RegionEntry[];
   states?: RegionEntry[];
   cities?: CityEntry[];
+  visitedStates?: VisitedAdminFeature[];
+  visitedCountries?: VisitedAdminFeature[];
 }
 
 type TravelsPayload = FeatureCollection & { metadata: TravelsMeta };
@@ -132,6 +139,8 @@ export default async function TravelsPage({
             stadiaKey={stadiaKey}
             cities={data.metadata.cities ?? []}
             states={data.metadata.states ?? []}
+            visitedStates={(data.metadata.visitedStates ?? []) as unknown as Feature[]}
+            visitedCountries={(data.metadata.visitedCountries ?? []) as unknown as Feature[]}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center px-6 text-center">

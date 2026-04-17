@@ -46,13 +46,23 @@ function featureBbox(f: AdminFeature): [number, number, number, number] {
 }
 
 function findContaining(features: AdminFeature[], lng: number, lat: number, nameKeys: string[]): string | null {
+  const result = findContainingWithFeat(features, lng, lat, nameKeys);
+  return result ? result.name : null;
+}
+
+function findContainingWithFeat(
+  features: AdminFeature[],
+  lng: number,
+  lat: number,
+  nameKeys: string[],
+): { name: string; feat: AdminFeature } | null {
   const p = point([lng, lat]);
   for (const f of features) {
     if (!boundingBoxContains(f, lng, lat)) continue;
     if (booleanPointInPolygon(p, f)) {
       for (const k of nameKeys) {
         const v = f.properties[k];
-        if (typeof v === "string" && v.length) return v;
+        if (typeof v === "string" && v.length) return { name: v, feat: f };
       }
     }
   }
@@ -70,10 +80,17 @@ export interface CityEntry {
   lat: number;
   rank: number;
 }
+export interface VisitedAdminFeature {
+  type: "Feature";
+  properties: { name: string; blocks: number };
+  geometry: Polygon | MultiPolygon;
+}
 export interface RegionStats {
   countries: RegionEntry[];
   states: RegionEntry[];
   cities: CityEntry[];
+  visitedStates: VisitedAdminFeature[];
+  visitedCountries: VisitedAdminFeature[];
 }
 
 export async function regionsForTiles(tiles: ParsedTile[]): Promise<RegionStats> {
@@ -91,7 +108,7 @@ export async function regionsForTiles(tiles: ParsedTile[]): Promise<RegionStats>
     citiesRaw = p;
   } catch (err) {
     console.warn("failed to load admin boundaries:", err);
-    return { countries: [], states: [], cities: [] };
+    return { countries: [], states: [], cities: [], visitedStates: [], visitedCountries: [] };
   }
 
   // Collect populated blocks as both a set (for fast city lookup) and a list
@@ -128,11 +145,21 @@ export async function regionsForTiles(tiles: ParsedTile[]): Promise<RegionStats>
 
   const countryHits = new Map<string, Hit>();
   const stateHits = new Map<string, Hit>();
+  // Also remember which admin feature produced each name so we can emit
+  // the feature geometry for map highlighting.
+  const countryByName = new Map<string, AdminFeature>();
+  const stateByName = new Map<string, AdminFeature>();
   for (const [lng, lat] of blockCenters) {
-    const country = findContaining(countryFeats, lng, lat, ["ADMIN", "NAME", "NAME_LONG", "SOVEREIGNT"]);
-    if (country) accumulate(countryHits, country, lng, lat);
-    const state = findContaining(stateFeats, lng, lat, ["name", "name_en", "NAME", "gn_name"]);
-    if (state) accumulate(stateHits, state, lng, lat);
+    const country = findContainingWithFeat(countryFeats, lng, lat, ["ADMIN", "NAME", "NAME_LONG", "SOVEREIGNT"]);
+    if (country) {
+      accumulate(countryHits, country.name, lng, lat);
+      if (!countryByName.has(country.name)) countryByName.set(country.name, country.feat);
+    }
+    const state = findContainingWithFeat(stateFeats, lng, lat, ["name", "name_en", "NAME", "gn_name"]);
+    if (state) {
+      accumulate(stateHits, state.name, lng, lat);
+      if (!stateByName.has(state.name)) stateByName.set(state.name, state.feat);
+    }
   }
   const MIN_BLOCKS = 10;
   const byBlocksDesc = (a: { blocks: number }, b: { blocks: number }) => b.blocks - a.blocks;
@@ -178,5 +205,30 @@ export async function regionsForTiles(tiles: ParsedTile[]): Promise<RegionStats>
     cities.sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name));
   }
 
-  return { countries: toList(countryHits), states: toList(stateHits), cities };
+  const countriesList = toList(countryHits);
+  const statesList = toList(stateHits);
+
+  const adminToFeat = (
+    list: typeof countriesList,
+    byName: Map<string, AdminFeature>,
+  ): VisitedAdminFeature[] =>
+    list
+      .map((r) => {
+        const feat = byName.get(r.name);
+        if (!feat) return null;
+        return {
+          type: "Feature" as const,
+          properties: { name: r.name, blocks: r.blocks },
+          geometry: feat.geometry,
+        };
+      })
+      .filter((f): f is VisitedAdminFeature => f !== null);
+
+  return {
+    countries: countriesList,
+    states: statesList,
+    cities,
+    visitedStates: adminToFeat(statesList, stateByName),
+    visitedCountries: adminToFeat(countriesList, countryByName),
+  };
 }

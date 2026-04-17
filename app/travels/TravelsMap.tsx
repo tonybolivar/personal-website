@@ -25,9 +25,11 @@ interface Props {
   stadiaKey: string;
   cities?: CityEntry[];
   states?: StateEntry[];
+  visitedStates?: Feature[];
+  visitedCountries?: Feature[];
 }
 
-export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, states }: Props) {
+export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, states, visitedStates, visitedCountries }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [status, setStatus] = useState<string>("");
@@ -35,6 +37,9 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
     x: number; y: number; blocks: number; where: string;
   } | null>(null);
   const [projection, setProjection] = useState<"mercator" | "globe">("mercator");
+  const [statePopup, setStatePopup] = useState<{
+    x: number; y: number; name: string; blocks: number; bbox: [number, number, number, number];
+  } | null>(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -92,6 +97,106 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
 
     map.on("load", () => {
       try {
+        // Admin boundary layers for visited states/countries sit UNDER the
+        // explored polygons so red regions remain visually dominant.
+        if (visitedCountries && visitedCountries.length) {
+          map.addSource("visited-countries", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: visitedCountries },
+            promoteId: "name",
+          });
+          map.addLayer({
+            id: "visited-countries-fill",
+            type: "fill",
+            source: "visited-countries",
+            paint: { "fill-color": "#b30000", "fill-opacity": 0.04 },
+          });
+          map.addLayer({
+            id: "visited-countries-outline",
+            type: "line",
+            source: "visited-countries",
+            paint: {
+              "line-color": "#121212",
+              "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.9, 4, 1.2, 8, 1.6],
+              "line-opacity": 0.55,
+            },
+          });
+        }
+        if (visitedStates && visitedStates.length) {
+          map.addSource("visited-states", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: visitedStates },
+            promoteId: "name",
+          });
+          map.addLayer({
+            id: "visited-states-fill",
+            type: "fill",
+            source: "visited-states",
+            paint: {
+              "fill-color": "#b30000",
+              "fill-opacity": [
+                "case",
+                ["boolean", ["feature-state", "hover"], false],
+                0.18,
+                0.06,
+              ],
+            },
+          });
+          map.addLayer({
+            id: "visited-states-outline",
+            type: "line",
+            source: "visited-states",
+            paint: {
+              "line-color": "#121212",
+              "line-width": [
+                "case",
+                ["boolean", ["feature-state", "hover"], false],
+                3,
+                1.4,
+              ],
+              "line-opacity": [
+                "case",
+                ["boolean", ["feature-state", "hover"], false],
+                1,
+                0.7,
+              ],
+            },
+          });
+          // Hover lift + click-for-stats wiring.
+          let hoveredStateId: string | number | null = null;
+          map.on("mousemove", "visited-states-fill", (ev) => {
+            const f = ev.features?.[0];
+            if (!f || f.id === undefined) return;
+            if (hoveredStateId !== null && hoveredStateId !== f.id) {
+              map.setFeatureState({ source: "visited-states", id: hoveredStateId }, { hover: false });
+            }
+            hoveredStateId = f.id;
+            map.setFeatureState({ source: "visited-states", id: hoveredStateId }, { hover: true });
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", "visited-states-fill", () => {
+            if (hoveredStateId !== null) {
+              map.setFeatureState({ source: "visited-states", id: hoveredStateId }, { hover: false });
+              hoveredStateId = null;
+            }
+            map.getCanvas().style.cursor = "";
+          });
+          map.on("click", "visited-states-fill", (ev) => {
+            const f = ev.features?.[0];
+            if (!f) return;
+            const props = f.properties as { name?: string; blocks?: number };
+            const fb = geomBbox(f as Feature);
+            if (!props.name || !fb) return;
+            setStatePopup({
+              x: ev.point.x,
+              y: ev.point.y,
+              name: props.name,
+              blocks: Number(props.blocks ?? 0),
+              bbox: fb,
+            });
+          });
+        }
+
         if (!exploredFC) return;
         map.addSource("explored", { type: "geojson", data: exploredFC });
         if (fog) {
@@ -330,6 +435,44 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
         </div>
       )}
 
+      {statePopup && (
+        <div
+          className="absolute text-xs bg-[rgba(246,241,230,0.97)] px-3 py-2 border border-[rgba(18,18,18,0.5)] shadow-md leading-5"
+          style={{ left: Math.min(statePopup.x + 16, 9999), top: statePopup.y + 16, minWidth: 180 }}
+        >
+          <div className="flex flex-row items-baseline justify-between gap-2">
+            <div className="font-semibold ink-body text-sm">{statePopup.name}</div>
+            <button
+              type="button"
+              onClick={() => setStatePopup(null)}
+              className="ink-muted text-xs hover:text-[var(--accent)]"
+              aria-label="close"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="mt-1 ink-muted">
+            <span className="text-[var(--accent)] font-semibold">{statePopup.blocks.toLocaleString()}</span>{" "}
+            cells · ~{(statePopup.blocks * 0.36).toFixed(statePopup.blocks * 0.36 >= 100 ? 0 : 1)} km²
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const m = mapRef.current;
+              if (!m) return;
+              m.fitBounds(
+                [[statePopup.bbox[0], statePopup.bbox[1]], [statePopup.bbox[2], statePopup.bbox[3]]],
+                { padding: 80, maxZoom: 10, duration: 700 },
+              );
+              setStatePopup(null);
+            }}
+            className="mt-2 text-[11px] px-2 py-[2px] border border-[rgba(18,18,18,0.4)] hover:bg-[var(--accent)] hover:text-[var(--paper)] hover:border-[var(--accent)] transition-colors"
+          >
+            zoom to
+          </button>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={() => setProjection((p) => (p === "mercator" ? "globe" : "mercator"))}
@@ -405,8 +548,8 @@ function describeLocation(
   if (nearest && nearest.d <= 15) {
     return state ? `${nearest.city.name}, ${state.name}` : nearest.city.name;
   }
-  if (nearest && state) return `near ${nearest.city.name} · ${state.name}`;
-  if (nearest) return `near ${nearest.city.name}`;
+  if (nearest && nearest.d <= 60 && state) return `near ${nearest.city.name} · ${state.name}`;
+  if (nearest && nearest.d <= 60) return `near ${nearest.city.name}`;
   if (state) return state.name;
   const lngDir = center[0] >= 0 ? "E" : "W";
   const latDir = center[1] >= 0 ? "N" : "S";
