@@ -531,8 +531,8 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             const el = mapRef.current?.getContainer();
             const w = el?.clientWidth ?? 9999;
             const h = el?.clientHeight ?? 9999;
-            const left = Math.max(8, Math.min(statePopup.x + 16, w - POPUP_W - 8));
-            const top = Math.max(8, Math.min(statePopup.y + 16, h - POPUP_H - 8));
+            const left = Math.max(0, Math.min(statePopup.x + 16, w - POPUP_W));
+            const top = Math.max(0, Math.min(statePopup.y + 16, h - POPUP_H));
             return { left, top, minWidth: 200, maxWidth: POPUP_W, maxHeight: POPUP_H };
           })()}
         >
