@@ -255,15 +255,21 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
           type: "line",
           source: "explored",
           paint: {
-            "line-color": "#121212",
+            "line-color": [
+              "interpolate", ["linear"], ["zoom"],
+              0, "#b30000",
+              8, "#b30000",
+              12, "#6a0000",
+              16, "#1e1e1e",
+            ],
             "line-width": [
               "interpolate", ["linear"], ["zoom"],
-              0, 1.0,
-              6, 1.1,
-              11, 1.0,
+              0, 1.6,
+              6, 1.6,
+              12, 1.2,
               16, 0.7,
             ],
-            "line-opacity": 0.9,
+            "line-opacity": 0.95,
           },
         });
 
