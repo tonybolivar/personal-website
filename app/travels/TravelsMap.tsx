@@ -277,11 +277,18 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities }:
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    try {
-      map.setProjection({ type: projection });
-    } catch (err) {
-      setStatus(`projection: ${err instanceof Error ? err.message : String(err)}`);
-    }
+    const apply = () => {
+      try {
+        map.setProjection({ type: projection });
+      } catch (err) {
+        // Silently ignore — maplibre rejects setProjection during style
+        // transitions, and our initial render sets mercator which is the
+        // default anyway.
+        console.warn("setProjection skipped:", err);
+      }
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once("style.load", apply);
   }, [projection]);
 
   return (
