@@ -17,6 +17,22 @@ function unauthorized() {
 }
 
 export async function POST(req: Request) {
+  try {
+    return await doUpload(req);
+  } catch (err) {
+    console.error("[photos/upload] fatal", err);
+    return Response.json(
+      {
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack?.split("\n").slice(0, 6).join("\n") : undefined,
+      },
+      { status: 500 },
+    );
+  }
+}
+
+async function doUpload(req: Request): Promise<Response> {
   const auth = req.headers.get("authorization");
   const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
   if (!process.env.CRON_SECRET || auth !== expected) return unauthorized();
