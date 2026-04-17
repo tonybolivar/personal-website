@@ -52,27 +52,27 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
     const el = containerRef.current;
     if (!el || mapRef.current) return;
 
-    // Stamen Terrain via Stadia — standard colored atlas basemap (green
-    // land, blue water, hillshade) so explored areas read like a real map
-    // peeking through the dark fog, matching the Fog of World app look.
+    // Alidade Smooth Dark via Stadia — night-mode colored basemap (muted
+    // greens, dark blues) that matches the Fog of World app aesthetic.
+    // Cyan explored trails pop against this without needing a red fill.
     const keyParam = stadiaKey ? `?api_key=${stadiaKey}` : "";
     const style: maplibregl.StyleSpecification | string = mapKey
       ? `https://api.maptiler.com/maps/landscape/style.json?key=${mapKey}`
       : {
           version: 8,
           sources: {
-            terrain: {
+            dark: {
               type: "raster",
               tiles: [
-                `https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}.jpg${keyParam}`,
+                `https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}.png${keyParam}`,
               ],
               tileSize: 256,
-              maxzoom: 16,
+              maxzoom: 20,
               attribution:
-                "\u00a9 <a href='https://stadiamaps.com/'>Stadia Maps</a> \u00a9 <a href='https://stamen.com/'>Stamen Design</a> \u00a9 <a href='https://openstreetmap.org/copyright'>OpenStreetMap</a>",
+                "\u00a9 <a href='https://stadiamaps.com/'>Stadia Maps</a> \u00a9 <a href='https://openmaptiles.org/'>OpenMapTiles</a> \u00a9 <a href='https://openstreetmap.org/copyright'>OpenStreetMap</a>",
             },
           },
-          layers: [{ id: "terrain", type: "raster", source: "terrain" }],
+          layers: [{ id: "dark", type: "raster", source: "dark" }],
         };
 
     let map: maplibregl.Map;
@@ -116,16 +116,16 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             id: "visited-countries-fill",
             type: "fill",
             source: "visited-countries",
-            paint: { "fill-color": "#b30000", "fill-opacity": 0.04 },
+            paint: { "fill-color": "#4dd6d9", "fill-opacity": 0.02 },
           });
           map.addLayer({
             id: "visited-countries-outline",
             type: "line",
             source: "visited-countries",
             paint: {
-              "line-color": "#121212",
+              "line-color": "#d9e7e8",
               "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.6, 4, 0.8, 8, 1.0],
-              "line-opacity": 0.4,
+              "line-opacity": 0.3,
             },
           });
         }
@@ -140,12 +140,12 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             type: "fill",
             source: "visited-states",
             paint: {
-              "fill-color": "#b30000",
+              "fill-color": "#4dd6d9",
               "fill-opacity": [
                 "case",
                 ["boolean", ["feature-state", "hover"], false],
-                0.18,
-                0.06,
+                0.1,
+                0.03,
               ],
             },
           });
@@ -154,18 +154,18 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             type: "line",
             source: "visited-states",
             paint: {
-              "line-color": "#121212",
+              "line-color": "#d9e7e8",
               "line-width": [
                 "case",
                 ["boolean", ["feature-state", "hover"], false],
-                2.2,
-                0.8,
+                2,
+                0.7,
               ],
               "line-opacity": [
                 "case",
                 ["boolean", ["feature-state", "hover"], false],
-                0.9,
-                0.45,
+                0.8,
+                0.35,
               ],
             },
           });
@@ -218,38 +218,38 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             type: "fill",
             source: "fog",
             paint: {
-              // Fog-of-World-style dark veil: unexplored land recedes into
-              // near-black, while the holes (explored regions) reveal the
-              // toner basemap and red fills at full brightness.
-              "fill-color": "#121212",
+              // Very subtle dark wash — the basemap is already dark, so
+              // unexplored areas only need a slight extra dim to feel
+              // recessed compared to explored trails.
+              "fill-color": "#050810",
               "fill-opacity": [
                 "interpolate", ["linear"], ["zoom"],
-                0, 0.72,
-                4, 0.68,
-                8, 0.58,
-                14, 0.38,
+                0, 0.38,
+                4, 0.32,
+                8, 0.25,
+                14, 0.15,
               ],
               "fill-antialias": true,
             },
           });
         }
 
-        // Outline-only at low zoom so anti-aliased block clusters don't
-        // read as filled triangles. Red fill fades in at city scale where
-        // the block geometry is truly legible.
+        // Explored trails — bright cyan/teal against the dark basemap,
+        // mirroring the Fog of World app. Thin lines at all zooms; a
+        // faint fill pops in at city scale so block shapes still read.
         map.addLayer({
           id: "explored-fill",
           type: "fill",
           source: "explored",
           paint: {
-            "fill-color": "#b30000",
+            "fill-color": "#4dd6d9",
             "fill-opacity": [
               "interpolate", ["linear"], ["zoom"],
               0, 0,
               9, 0,
-              11, 0.45,
-              14, 0.65,
-              16, 0.5,
+              11, 0.35,
+              14, 0.5,
+              16, 0.4,
             ],
           },
         });
@@ -258,21 +258,20 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
           type: "line",
           source: "explored",
           paint: {
-            "line-color": [
-              "interpolate", ["linear"], ["zoom"],
-              0, "#b30000",
-              8, "#b30000",
-              12, "#6a0000",
-              16, "#1e1e1e",
-            ],
+            "line-color": "#66e3e6",
             "line-width": [
               "interpolate", ["linear"], ["zoom"],
-              0, 1.6,
-              6, 1.6,
-              12, 1.2,
+              0, 1.4,
+              6, 1.5,
+              12, 1.1,
               16, 0.7,
             ],
-            "line-opacity": 0.95,
+            "line-opacity": [
+              "interpolate", ["linear"], ["zoom"],
+              0, 0.85,
+              8, 0.9,
+              14, 0.8,
+            ],
           },
         });
 
