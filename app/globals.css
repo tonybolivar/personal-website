@@ -94,13 +94,14 @@ html, body {
   transform: translate(-4px, 0);
 }
 .travels-city-dot {
-  width: 6px;
-  height: 6px;
+  width: 9px;
+  height: 9px;
   background: #b30000;
-  border: 1px solid #121212;
+  border: 1.5px solid #121212;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(18, 18, 18, 0.25);
 }
 .travels-city-label {
   font-size: 11px;
