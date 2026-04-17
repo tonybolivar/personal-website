@@ -40,7 +40,7 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
   } | null>(null);
   const [projection, setProjection] = useState<"mercator" | "globe">("mercator");
   const [statePopup, setStatePopup] = useState<{
-    x: number; y: number; name: string; blocks: number; bbox: [number, number, number, number];
+    x: number; y: number; name: string; blocks: number; bbox: [number, number, number, number]; photos: PhotoLite[];
   } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [layers, setLayers] = useState({
@@ -198,12 +198,17 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             const props = f.properties as { name?: string; blocks?: number };
             const fb = geomBbox(f as Feature);
             if (!props.name || !fb) return;
+            const photosInState = (photos ?? []).filter(
+              (p) =>
+                p.lng >= fb[0] && p.lng <= fb[2] && p.lat >= fb[1] && p.lat <= fb[3],
+            );
             setStatePopup({
               x: ev.point.x,
               y: ev.point.y,
               name: props.name,
               blocks: Number(props.blocks ?? 0),
               bbox: fb,
+              photos: photosInState,
             });
           });
         }
@@ -499,7 +504,7 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
       {statePopup && (
         <div
           className="absolute text-xs bg-[rgba(246,241,230,0.97)] px-3 py-2 border border-[rgba(18,18,18,0.5)] shadow-md leading-5"
-          style={{ left: Math.min(statePopup.x + 16, 9999), top: statePopup.y + 16, minWidth: 180 }}
+          style={{ left: Math.min(statePopup.x + 16, 9999), top: statePopup.y + 16, minWidth: 200, maxWidth: 320 }}
         >
           <div className="flex flex-row items-baseline justify-between gap-2">
             <div className="font-semibold ink-body text-sm">{statePopup.name}</div>
@@ -516,6 +521,37 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             <span className="text-[var(--accent)] font-semibold">{statePopup.blocks.toLocaleString()}</span>{" "}
             cells · ~{(statePopup.blocks * 0.36).toFixed(statePopup.blocks * 0.36 >= 100 ? 0 : 1)} km²
           </div>
+          {statePopup.photos.length > 0 && (
+            <div className="mt-2">
+              <div className="text-[10px] uppercase tracking-wider ink-muted mb-1">
+                {statePopup.photos.length} photo{statePopup.photos.length === 1 ? "" : "s"}
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                {statePopup.photos.slice(0, 9).map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => {
+                      setActivePhoto(p);
+                      setStatePopup(null);
+                    }}
+                    className="relative block aspect-square overflow-hidden border border-[rgba(18,18,18,0.25)] hover:border-[var(--accent)] transition-colors"
+                    title={p.caption ?? ""}
+                  >
+                    <img
+                      src={`/api/travels/photos/${p.id}/thumb`}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
+              {statePopup.photos.length > 9 && (
+                <div className="text-[10px] ink-muted mt-1">+ {statePopup.photos.length - 9} more</div>
+              )}
+            </div>
+          )}
           <button
             type="button"
             onClick={() => {
