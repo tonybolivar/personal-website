@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ["@vercel/blob", "dropbox", "undici"],
+    serverComponentsExternalPackages: ["@vercel/blob", "dropbox", "undici", "sharp", "exifr"],
   },
 };
 

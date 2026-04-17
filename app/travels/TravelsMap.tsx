@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Feature, FeatureCollection, Position } from "geojson";
+import PhotoModal, { type PhotoLite } from "./PhotoModal";
 
 interface CityEntry {
   name: string;
@@ -27,9 +28,10 @@ interface Props {
   states?: StateEntry[];
   visitedStates?: Feature[];
   visitedCountries?: Feature[];
+  photos?: PhotoLite[];
 }
 
-export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, states, visitedStates, visitedCountries }: Props) {
+export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, states, visitedStates, visitedCountries, photos }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [status, setStatus] = useState<string>("");
@@ -46,7 +48,9 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
     states: true,
     countries: true,
     cities: true,
+    photos: true,
   });
+  const [activePhoto, setActivePhoto] = useState<PhotoLite | null>(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -365,6 +369,26 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
           map.on("zoomend", updateCityVisibility);
         }
 
+        // Photo markers — one HTML dot per geotagged photo. Click opens the
+        // lightbox (<PhotoModal>). Always visible regardless of zoom.
+        const photoMarkers: maplibregl.Marker[] = [];
+        if (photos && photos.length > 0) {
+          for (const p of photos) {
+            const el = document.createElement("div");
+            el.className = "travels-photo-marker";
+            el.title = p.caption ?? "";
+            el.addEventListener("click", (ev) => {
+              ev.stopPropagation();
+              setActivePhoto(p);
+            });
+            photoMarkers.push(
+              new maplibregl.Marker({ element: el, anchor: "center" })
+                .setLngLat([p.lng, p.lat])
+                .addTo(map),
+            );
+          }
+        }
+
         if (bbox && Number.isFinite(bbox[0])) {
           map.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], {
             padding: 60,
@@ -427,9 +451,10 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
       setVis("visited-states-outline", layers.states);
       setVis("visited-countries-fill", layers.countries);
       setVis("visited-countries-outline", layers.countries);
-      // City HTML markers are not MapLibre layers; hide via CSS.
+      // HTML markers aren't MapLibre layers; hide via CSS custom properties.
       const root = map.getContainer();
       root.style.setProperty("--cities-display", layers.cities ? "flex" : "none");
+      root.style.setProperty("--photos-display", layers.photos ? "block" : "none");
     };
     if (map.isStyleLoaded()) apply();
     else map.once("idle", apply);
@@ -546,6 +571,8 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
       <div className="absolute bottom-3 left-3 pointer-events-none text-xs ink-muted bg-[rgba(246,241,230,0.9)] px-2 py-1 border border-[rgba(18,18,18,0.15)]">
         click near a red region or a state chip to zoom in · drag to pan · scroll to zoom
       </div>
+
+      {activePhoto && <PhotoModal photo={activePhoto} onClose={() => setActivePhoto(null)} />}
       {status && (
         <div className="absolute top-20 right-4 text-xs font-mono break-all bg-[rgba(246,241,230,0.95)] px-2 py-1 max-w-md" style={{ color: "#b30000" }}>
           {status}

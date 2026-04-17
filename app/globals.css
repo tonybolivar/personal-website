@@ -112,3 +112,20 @@ html, body {
   border: 1px solid rgba(18, 18, 18, 0.15);
   white-space: nowrap;
 }
+
+/* travels page — photo markers */
+.travels-photo-marker {
+  display: var(--photos-display, block);
+  width: 14px;
+  height: 14px;
+  background: #b30000;
+  border: 2px solid var(--paper);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(18, 18, 18, 0.45), 0 2px 4px rgba(18, 18, 18, 0.2);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 120ms ease;
+}
+.travels-photo-marker:hover {
+  transform: scale(1.35);
+}

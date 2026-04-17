@@ -5,6 +5,7 @@ import TravelsNav from "./TravelsNav";
 import TravelsMap from "./TravelsMap";
 import StatsBar from "./StatsBar";
 import SnapshotPicker from "./SnapshotPicker";
+import { readPhotoIndex, type Photo } from "@/lib/travels/photos";
 
 const radio = Radio_Canada({ subsets: ["latin"], weight: ["400", "600"] });
 
@@ -96,7 +97,11 @@ export default async function TravelsPage({
 }) {
   const requestedSnapshot = searchParams?.snapshot ?? null;
   const snapshot = requestedSnapshot && /^\d{4}-\d{2}-\d{2}$/.test(requestedSnapshot) ? requestedSnapshot : null;
-  const [data, snapshotsList] = await Promise.all([loadTravels(snapshot), listSnapshots()]);
+  const [data, snapshotsList, photos] = await Promise.all([
+    loadTravels(snapshot),
+    listSnapshots(),
+    readPhotoIndex().catch((): Photo[] => []),
+  ]);
   const mapKey = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
   const stadiaKey = process.env.NEXT_PUBLIC_STADIA_API_KEY ?? "";
   const exploredCount = data
@@ -141,6 +146,7 @@ export default async function TravelsPage({
             states={data.metadata.states ?? []}
             visitedStates={(data.metadata.visitedStates ?? []) as unknown as Feature[]}
             visitedCountries={(data.metadata.visitedCountries ?? []) as unknown as Feature[]}
+            photos={photos}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
