@@ -115,6 +115,48 @@ html, body {
 }
 
 /* travels page — photo markers */
+/* travels page — alma mater pin */
+.travels-almamater {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  pointer-events: auto;
+  cursor: pointer;
+  font-family: Georgia, "Times New Roman", serif;
+  transform: translate(-4px, 0);
+}
+.travels-almamater-badge {
+  width: 18px;
+  height: 18px;
+  background: #821019; /* Colgate maroon */
+  color: #f6f1e6;
+  border: 2px solid var(--paper);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #121212, 0 2px 4px rgba(18, 18, 18, 0.35);
+  font-weight: 700;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 120ms ease;
+}
+.travels-almamater:hover .travels-almamater-badge {
+  transform: scale(1.2);
+}
+.travels-almamater-label {
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #821019;
+  background: rgba(246, 241, 230, 0.9);
+  padding: 1px 6px;
+  border: 1px solid #821019;
+  white-space: nowrap;
+}
+
 .travels-photo-marker {
   display: var(--photos-display, block);
   width: 9px;

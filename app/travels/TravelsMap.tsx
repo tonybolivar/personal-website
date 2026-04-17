@@ -394,6 +394,30 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
           map.on("zoomend", updateCityVisibility);
         }
 
+        // Alma mater pin — Colgate University (Hamilton, NY). Custom badge
+        // in Colgate maroon with a serif "Colgate" label; click flies there.
+        {
+          const COLGATE = { lng: -75.5337, lat: 42.8189, label: "Colgate" };
+          const el = document.createElement("div");
+          el.className = "travels-almamater";
+          el.title = "Colgate University — alma mater";
+          const badge = document.createElement("span");
+          badge.className = "travels-almamater-badge";
+          badge.textContent = "C";
+          const label = document.createElement("span");
+          label.className = "travels-almamater-label";
+          label.textContent = COLGATE.label;
+          el.appendChild(badge);
+          el.appendChild(label);
+          el.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            map.easeTo({ center: [COLGATE.lng, COLGATE.lat], zoom: 14, duration: 700 });
+          });
+          new maplibregl.Marker({ element: el, anchor: "left" })
+            .setLngLat([COLGATE.lng, COLGATE.lat])
+            .addTo(map);
+        }
+
         // Photo markers — one HTML dot per geotagged photo. Click opens the
         // lightbox (<PhotoModal>). Marker size scales with zoom via a CSS
         // custom property so a 12 px dot doesn't cover a whole state at
