@@ -370,7 +370,9 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
         }
 
         // Photo markers — one HTML dot per geotagged photo. Click opens the
-        // lightbox (<PhotoModal>). Always visible regardless of zoom.
+        // lightbox (<PhotoModal>). Marker size scales with zoom via a CSS
+        // custom property so a 12 px dot doesn't cover a whole state at
+        // continental view.
         const photoMarkers: maplibregl.Marker[] = [];
         if (photos && photos.length > 0) {
           for (const p of photos) {
@@ -387,6 +389,14 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
                 .addTo(map),
             );
           }
+          const updatePhotoScale = () => {
+            const z = map.getZoom();
+            // z=2 → 0.4 (tiny), z=6 → 0.65, z=10 → 0.9, z=14 → 1.1
+            const scale = Math.max(0.4, Math.min(1.2, 0.35 + (z - 1) * 0.065));
+            map.getContainer().style.setProperty("--photo-marker-scale", String(scale));
+          };
+          updatePhotoScale();
+          map.on("zoom", updatePhotoScale);
         }
 
         if (bbox && Number.isFinite(bbox[0])) {
