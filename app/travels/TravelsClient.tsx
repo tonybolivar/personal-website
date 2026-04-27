@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Feature, FeatureCollection } from "geojson";
 import TravelsMap from "./TravelsMap";
 import StatsBar from "./StatsBar";
@@ -46,7 +46,12 @@ interface Props {
   photos: PhotoLite[];
 }
 
-const FRAME_INTERVAL_MS = 1200;
+export type PlaySpeed = "slow" | "normal" | "fast";
+const FRAME_INTERVAL_MS: Record<PlaySpeed, number> = {
+  slow: 2400,
+  normal: 1200,
+  fast: 600,
+};
 
 function formatSyncedAt(iso: string): string {
   const d = new Date(iso);
@@ -70,6 +75,7 @@ export default function TravelsClient({
   const [frameIndex, setFrameIndex] = useState<number>(initialFrame);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [playSpeed, setPlaySpeed] = useState<PlaySpeed>("normal");
   // Cache per-date payloads so a replay or scrub doesn't refetch.
   const cacheRef = useRef<Map<string, TravelsPayload>>(new Map());
 
@@ -119,9 +125,9 @@ export default function TravelsClient({
         }
         return f - 1;
       });
-    }, FRAME_INTERVAL_MS);
+    }, FRAME_INTERVAL_MS[playSpeed]);
     return () => clearInterval(id);
-  }, [playing]);
+  }, [playing, playSpeed]);
 
   const togglePlay = () => {
     // If we're already at the newest snapshot, restart from the oldest.
@@ -137,6 +143,20 @@ export default function TravelsClient({
   const countries = data.metadata.countries ?? [];
   const states = data.metadata.states ?? [];
 
+  // Names of regions added in this snapshot's diff. Drives the "+ N new"
+  // badge in StatsBar; same date-match logic the map uses for highlighting.
+  const generatedDate = data.metadata.generatedAt.slice(0, 10);
+  const { newCountries, newStates } = useMemo(() => {
+    const collect = (xs?: VisitedAdminFeature[]) =>
+      (xs ?? [])
+        .filter((f) => f.properties?.addedOn === generatedDate)
+        .map((f) => f.properties.name);
+    return {
+      newCountries: collect(data.metadata.visitedCountries),
+      newStates: collect(data.metadata.visitedStates),
+    };
+  }, [data, generatedDate]);
+
   return (
     <>
       <div className="flex flex-row items-center gap-x-4 px-6 py-1 text-xs ink-muted border-b border-[rgba(18,18,18,0.1)] bg-[rgba(246,241,230,0.82)] backdrop-blur-sm z-10">
@@ -145,6 +165,8 @@ export default function TravelsClient({
           frameIndex={frameIndex}
           playing={playing}
           loading={loading}
+          speed={playSpeed}
+          onSpeed={setPlaySpeed}
           onFrame={(i) => {
             setPlaying(false);
             setFrameIndex(i);
@@ -158,6 +180,8 @@ export default function TravelsClient({
         exploredCount={exploredCount}
         visitedPixelCount={data.metadata.visitedPixelCount}
         syncedLabel={`synced ${formatSyncedAt(data.metadata.generatedAt)}`}
+        newCountries={newCountries}
+        newStates={newStates}
       />
       <main className="flex-1 relative">
         <TravelsMap

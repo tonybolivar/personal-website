@@ -22,6 +22,8 @@ interface Props {
   exploredCount: number;
   visitedPixelCount: number;
   syncedLabel: string;
+  newCountries?: string[];
+  newStates?: string[];
 }
 
 function flyTo(bbox: [number, number, number, number]) {
@@ -42,7 +44,21 @@ function Chip({ entry }: { entry: RegionEntry }) {
   );
 }
 
-export default function StatsBar({ countries, states, exploredCount, visitedPixelCount, syncedLabel }: Props) {
+export default function StatsBar({ countries, states, exploredCount, visitedPixelCount, syncedLabel, newCountries, newStates }: Props) {
+  const newBits: string[] = [];
+  if (newCountries && newCountries.length) {
+    newBits.push(`+ ${newCountries.length} ${newCountries.length === 1 ? "country" : "countries"}`);
+  }
+  if (newStates && newStates.length) {
+    newBits.push(`+ ${newStates.length} ${newStates.length === 1 ? "state" : "states"}`);
+  }
+  const newTooltip = [
+    newCountries?.length ? `Countries: ${newCountries.join(", ")}` : "",
+    newStates?.length ? `States: ${newStates.join(", ")}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
   return (
     <div className="flex flex-row items-center gap-x-4 gap-y-1 px-6 py-2 text-xs ink-muted border-b border-[rgba(18,18,18,0.1)] bg-[rgba(246,241,230,0.82)] backdrop-blur-sm z-10 flex-wrap">
       <span>
@@ -72,6 +88,14 @@ export default function StatsBar({ countries, states, exploredCount, visitedPixe
         </span>{" "}
         defogged
       </span>
+      {newBits.length > 0 && (
+        <span
+          className="px-2 py-[1px] border border-[rgba(255,56,56,0.6)] bg-[rgba(255,56,56,0.12)] text-[#ff3838] font-semibold cursor-help"
+          title={newTooltip || undefined}
+        >
+          {newBits.join(" · ")} new
+        </span>
+      )}
       <span className="ml-auto">{syncedLabel}</span>
     </div>
   );

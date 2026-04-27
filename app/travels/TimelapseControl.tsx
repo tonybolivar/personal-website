@@ -1,19 +1,31 @@
 "use client";
 
+import type { PlaySpeed } from "./TravelsClient";
+
 interface Props {
   snapshots: string[]; // newest first (matches listSnapshots order)
   frameIndex: number; // index into snapshots; 0 = newest, snapshots.length-1 = oldest
   playing: boolean;
   loading: boolean;
+  speed: PlaySpeed;
+  onSpeed: (s: PlaySpeed) => void;
   onFrame: (i: number) => void;
   onTogglePlay: () => void;
 }
+
+const SPEED_OPTIONS: { value: PlaySpeed; label: string }[] = [
+  { value: "slow", label: "½×" },
+  { value: "normal", label: "1×" },
+  { value: "fast", label: "2×" },
+];
 
 export default function TimelapseControl({
   snapshots,
   frameIndex,
   playing,
   loading,
+  speed,
+  onSpeed,
   onFrame,
   onTogglePlay,
 }: Props) {
@@ -51,6 +63,25 @@ export default function TimelapseControl({
         {currentDate}
         {loading && <span className="ml-1 ink-muted">…</span>}
       </span>
+      <div className="flex flex-row border border-[rgba(18,18,18,0.4)]" role="radiogroup" aria-label="playback speed">
+        {SPEED_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            role="radio"
+            aria-checked={speed === opt.value}
+            onClick={() => onSpeed(opt.value)}
+            className={`font-mono w-7 h-6 flex items-center justify-center text-[10px] transition-colors ${
+              speed === opt.value
+                ? "bg-[var(--accent)] text-[var(--paper)]"
+                : "bg-[rgba(246,241,230,0.95)] hover:bg-[rgba(179,0,0,0.15)] ink-body"
+            }`}
+            title={`${opt.label} speed`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

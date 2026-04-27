@@ -1,6 +1,7 @@
 import { get, list, put } from "@vercel/blob";
+import type { Feature } from "geojson";
 import { fetchSyncFiles } from "@/lib/dropbox";
-import { parseTile, countVisited } from "@/lib/fog/parseTile";
+import { parseTile, countVisited, TILE_WIDTH, type ParsedTile } from "@/lib/fog/parseTile";
 import { tilesToGeoJson, geoJsonBbox } from "@/lib/fog/polygonize";
 import { regionsForTiles, type VisitedAdminFeature } from "@/lib/fog/regions";
 
@@ -9,6 +10,53 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const BLOB_KEY = "travels/latest.json";
+
+function blockKeysFromTiles(tiles: ParsedTile[]): Set<string> {
+  const set = new Set<string>();
+  for (const t of tiles) {
+    for (const blk of t.blocks) {
+      const gbx = t.tileX * TILE_WIDTH + blk.bx;
+      const gby = t.tileY * TILE_WIDTH + blk.by;
+      set.add(`${gbx},${gby}`);
+    }
+  }
+  return set;
+}
+
+async function loadPriorBlockKeys(today: string): Promise<Set<string> | null> {
+  try {
+    const { blobs } = await list({ prefix: "travels/keys/" });
+    const dates = blobs
+      .map((b) => b.pathname.match(/travels\/keys\/(\d{4}-\d{2}-\d{2})\.keys\.json$/)?.[1])
+      .filter((d): d is string => Boolean(d) && d !== today)
+      .sort()
+      .reverse();
+    if (dates.length === 0) return null;
+    const result = await get(`travels/keys/${dates[0]}.keys.json`, { access: "private" });
+    if (!result || result.statusCode !== 200) return null;
+    const text = await new Response(result.stream).text();
+    const arr = JSON.parse(text);
+    return Array.isArray(arr) ? new Set(arr) : null;
+  } catch (err) {
+    console.warn("[cron/travels] could not load prior block keys:", err);
+    return null;
+  }
+}
+
+// Keep only blocks whose global key is in `keep`. Tiles with no remaining
+// blocks are dropped so polygonize doesn't iterate empty containers.
+function filterTilesByKeys(tiles: ParsedTile[], keep: Set<string>): ParsedTile[] {
+  return tiles
+    .map((t) => ({
+      ...t,
+      blocks: t.blocks.filter((blk) => {
+        const gbx = t.tileX * TILE_WIDTH + blk.bx;
+        const gby = t.tileY * TILE_WIDTH + blk.by;
+        return keep.has(`${gbx},${gby}`);
+      }),
+    }))
+    .filter((t) => t.blocks.length > 0);
+}
 
 interface PriorSnapshot {
   date: string;
@@ -125,11 +173,33 @@ async function run() {
   const taggedCountries = prior
     ? tagNewRegions(visitedCountries, prior.visitedCountryNames, today)
     : visitedCountries;
+
+  // Block-level diff: which (gbx,gby) keys appeared since the last cron run?
+  // Polygonize just those blocks separately so the map can paint a fresh
+  // overlay on top of the base explored layer. Keys are saved to a sidecar
+  // blob so the next run can compare without bloating the public snapshot.
+  const todayKeys = blockKeysFromTiles(tiles);
+  const priorKeys = await loadPriorBlockKeys(today);
+  let newExploredFeatures: Feature[] = [];
+  if (priorKeys) {
+    const newKeys = new Set<string>();
+    for (const k of todayKeys) if (!priorKeys.has(k)) newKeys.add(k);
+    if (newKeys.size > 0) {
+      const newTiles = filterTilesByKeys(tiles, newKeys);
+      const newFc = tilesToGeoJson(newTiles);
+      newExploredFeatures = newFc.features
+        .filter((f) => (f.properties as { kind?: string })?.kind === "explored")
+        .map((f) => ({
+          ...f,
+          properties: { ...(f.properties ?? {}), kind: "explored-new", addedOn: today },
+        }));
+    }
+  }
   const diffMs = Date.now() - started - fetchedMs - parsedMs - polygonizeMs - regionsMs;
 
   const payload = {
     type: "FeatureCollection" as const,
-    features: fc.features,
+    features: [...fc.features, ...newExploredFeatures],
     metadata: {
       generatedAt: new Date().toISOString(),
       tileCount: tiles.length,
@@ -143,11 +213,15 @@ async function run() {
       visitedStates: taggedStates,
       visitedCountries: taggedCountries,
       priorSnapshotDate: prior?.date ?? null,
+      newBlockCount: newExploredFeatures.length,
       timings: { fetchedMs, parsedMs, polygonizeMs, regionsMs, diffMs },
     },
   };
 
   const body = JSON.stringify(payload);
+  // Sidecar: save today's block keys so tomorrow's run has a baseline.
+  // Sorted for diff stability; cached aggressively (snapshots are immutable).
+  const keysBody = JSON.stringify([...todayKeys].sort());
   const [blob] = await Promise.all([
     put(BLOB_KEY, body, {
       access: "private",
@@ -158,6 +232,12 @@ async function run() {
     put(`travels/history/${today}.json`, body, {
       access: "private",
       contentType: "application/geo+json",
+      cacheControlMaxAge: 3600 * 24 * 365,
+      allowOverwrite: true,
+    }),
+    put(`travels/keys/${today}.keys.json`, keysBody, {
+      access: "private",
+      contentType: "application/json",
       cacheControlMaxAge: 3600 * 24 * 365,
       allowOverwrite: true,
     }),

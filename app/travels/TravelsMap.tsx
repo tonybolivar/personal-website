@@ -162,9 +162,10 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
     map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
     map.addControl(new maplibregl.NavigationControl({ showCompass: false, visualizePitch: false }), "top-right");
 
-    const explored = geojson.features.filter(
-      (f) => (f.properties as { kind?: string })?.kind === "explored",
-    );
+    const explored = geojson.features.filter((f) => {
+      const k = (f.properties as { kind?: string })?.kind;
+      return k === "explored" || k === "explored-new";
+    });
     const exploredFC: FeatureCollection | null = explored.length
       ? { type: "FeatureCollection", features: explored }
       : null;
@@ -349,10 +350,13 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
         // Outline-only at low zoom so anti-aliased block clusters don't
         // read as filled triangles. Red fill fades in at city scale where
         // the block geometry is truly legible.
+        // Filtered to kind=explored so the brighter "explored-new" layer
+        // (added below) doesn't double-paint these.
         map.addLayer({
           id: "explored-fill",
           type: "fill",
           source: "explored",
+          filter: ["==", "kind", "explored"],
           paint: {
             "fill-color": "#b30000",
             "fill-opacity": [
@@ -369,6 +373,7 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
           id: "explored-outline",
           type: "line",
           source: "explored",
+          filter: ["==", "kind", "explored"],
           paint: {
             "line-color": "#121212",
             "line-width": [
@@ -379,6 +384,42 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
               16, 0.7,
             ],
             "line-opacity": 0.9,
+          },
+        });
+        // Fresh blocks added in the latest cron run — overlaid above the
+        // base layer in vivid red so the "what's new today" stands out.
+        // Visible at lower zooms than the base fill since these tend to be
+        // small clusters that would otherwise be invisible until city scale.
+        map.addLayer({
+          id: "explored-new-fill",
+          type: "fill",
+          source: "explored",
+          filter: ["==", "kind", "explored-new"],
+          paint: {
+            "fill-color": "#ff3838",
+            "fill-opacity": [
+              "interpolate", ["linear"], ["zoom"],
+              0, 0.55,
+              6, 0.65,
+              11, 0.75,
+              16, 0.7,
+            ],
+          },
+        });
+        map.addLayer({
+          id: "explored-new-outline",
+          type: "line",
+          source: "explored",
+          filter: ["==", "kind", "explored-new"],
+          paint: {
+            "line-color": "#7a0000",
+            "line-width": [
+              "interpolate", ["linear"], ["zoom"],
+              0, 1.2,
+              11, 1.6,
+              16, 1.2,
+            ],
+            "line-opacity": 0.95,
           },
         });
 
@@ -579,9 +620,10 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
     const map = mapRef.current;
     if (!map) return;
     const apply = () => {
-      const explored = geojson.features.filter(
-        (f) => (f.properties as { kind?: string })?.kind === "explored",
-      );
+      const explored = geojson.features.filter((f) => {
+        const k = (f.properties as { kind?: string })?.kind;
+        return k === "explored" || k === "explored-new";
+      });
       const fog = geojson.features.find(
         (f) => (f.properties as { kind?: string })?.kind === "fog",
       );
