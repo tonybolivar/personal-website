@@ -10,18 +10,18 @@ const DEFAULT_COUNTRY = "United States of America";
 
 // Filter for the state-level layer. Features tagged with `country` are matched
 // directly. Older snapshots written before that field existed have no country
-// at all — we treat those as US so the legacy data still renders under the
-// default selection. Once the cron has rewritten history with country tags,
-// the second branch becomes a no-op.
-const buildCountryFilter = (selectedCountry: string): maplibregl.FilterSpecification => [
-  "any",
-  ["==", ["get", "country"], selectedCountry],
-  [
-    "all",
-    ["!", ["has", "country"]],
-    ["==", selectedCountry, DEFAULT_COUNTRY],
-  ],
-];
+// at all — for the default US selection we also include those untagged
+// features so the legacy data still renders. Once the cron has rewritten
+// every snapshot with country tags, the !has branch becomes a no-op.
+//
+// Uses legacy filter syntax (string keys, !has) because MapLibre's validator
+// treats this layer's filter as legacy and rejects expression operators like !.
+const buildCountryFilter = (selectedCountry: string): maplibregl.FilterSpecification => {
+  if (selectedCountry === DEFAULT_COUNTRY) {
+    return ["any", ["==", "country", selectedCountry], ["!has", "country"]];
+  }
+  return ["==", "country", selectedCountry];
+};
 
 interface CityEntry {
   name: string;
