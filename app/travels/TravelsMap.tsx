@@ -8,6 +8,21 @@ import PhotoModal, { type PhotoLite } from "./PhotoModal";
 
 const DEFAULT_COUNTRY = "United States of America";
 
+// Filter for the state-level layer. Features tagged with `country` are matched
+// directly. Older snapshots written before that field existed have no country
+// at all — we treat those as US so the legacy data still renders under the
+// default selection. Once the cron has rewritten history with country tags,
+// the second branch becomes a no-op.
+const buildCountryFilter = (selectedCountry: string): maplibregl.FilterSpecification => [
+  "any",
+  ["==", ["get", "country"], selectedCountry],
+  [
+    "all",
+    ["!", ["has", "country"]],
+    ["==", selectedCountry, DEFAULT_COUNTRY],
+  ],
+];
+
 interface CityEntry {
   name: string;
   lng: number;
@@ -216,11 +231,7 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
           });
           // Show only the selected country's states. Filter is updated by a
           // separate effect when selectedCountry changes.
-          const countryFilter: maplibregl.FilterSpecification = [
-            "==",
-            ["get", "country"],
-            selectedCountryRef.current,
-          ];
+          const countryFilter = buildCountryFilter(selectedCountryRef.current);
           map.addLayer({
             id: "visited-states-fill",
             type: "fill",
@@ -636,11 +647,7 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const filter: maplibregl.FilterSpecification = [
-      "==",
-      ["get", "country"],
-      selectedCountry,
-    ];
+    const filter = buildCountryFilter(selectedCountry);
     const apply = () => {
       if (map.getLayer("visited-states-fill")) map.setFilter("visited-states-fill", filter);
       if (map.getLayer("visited-states-outline")) map.setFilter("visited-states-outline", filter);
