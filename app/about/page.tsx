@@ -34,8 +34,8 @@ export default function Home() {
                 Colgate
               </a>
             </span>{" "}
-             University. I like building software, learning hard things, and I have a budding interest in
-            systems + machine learning.
+             University. I like building software, learning hard things, and I like front-end dev and I have a budding interest in
+             machine learning.
           </p>
 
           <p className="pt-6 ink-body">
