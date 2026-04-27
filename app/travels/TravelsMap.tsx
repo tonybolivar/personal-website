@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Feature, FeatureCollection, Position } from "geojson";
 import PhotoModal, { type PhotoLite } from "./PhotoModal";
+
+const DEFAULT_COUNTRY = "United States of America";
 
 interface CityEntry {
   name: string;
@@ -29,9 +31,13 @@ interface Props {
   visitedStates?: Feature[];
   visitedCountries?: Feature[];
   photos?: PhotoLite[];
+  // ISO date string. Features with addedOn === this date are rendered in a
+  // brighter "fresh" red so the user can see what changed in the latest run.
+  generatedAt?: string;
 }
 
-export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, states, visitedStates, visitedCountries, photos }: Props) {
+export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, states, visitedStates, visitedCountries, photos, generatedAt }: Props) {
+  const generatedDate = (generatedAt ?? "").slice(0, 10);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [status, setStatus] = useState<string>("");
@@ -54,6 +60,28 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
     list: PhotoLite[];
     index: number;
   } | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string>(DEFAULT_COUNTRY);
+  // Track latest selectedCountry inside the map-init closure (which runs once
+  // and captures stale state otherwise).
+  const selectedCountryRef = useRef(selectedCountry);
+  useEffect(() => {
+    selectedCountryRef.current = selectedCountry;
+  }, [selectedCountry]);
+
+  const visitedCountryNames = useMemo(() => {
+    const names = (visitedCountries ?? [])
+      .map((f) => (f.properties as { name?: string })?.name)
+      .filter((n): n is string => typeof n === "string" && n.length > 0);
+    return Array.from(new Set(names)).sort();
+  }, [visitedCountries]);
+
+  // If the default country has no data yet (e.g. only Korea is populated),
+  // fall back to the first visited country so the states view isn't empty.
+  useEffect(() => {
+    if (visitedCountryNames.length === 0) return;
+    if (visitedCountryNames.includes(selectedCountry)) return;
+    setSelectedCountry(visitedCountryNames[0]);
+  }, [visitedCountryNames, selectedCountry]);
 
   const openPhoto = (list: PhotoLite[], index: number) => {
     const p = list[index];
@@ -143,7 +171,20 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             id: "visited-countries-fill",
             type: "fill",
             source: "visited-countries",
-            paint: { "fill-color": "#b30000", "fill-opacity": 0.04 },
+            paint: {
+              "fill-color": [
+                "case",
+                ["==", ["get", "addedOn"], generatedDate],
+                "#ff3838",
+                "#b30000",
+              ],
+              "fill-opacity": [
+                "case",
+                ["==", ["get", "addedOn"], generatedDate],
+                0.18,
+                0.04,
+              ],
+            },
           });
           map.addLayer({
             id: "visited-countries-outline",
@@ -155,6 +196,17 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
               "line-opacity": 0.55,
             },
           });
+          // Click a country to swap which country's states are rendered.
+          // Clicks on an already-selected country are no-ops; a different
+          // country switches the state-level view.
+          map.on("click", "visited-countries-fill", (ev) => {
+            const f = ev.features?.[0];
+            if (!f) return;
+            const name = (f.properties as { name?: string })?.name;
+            if (name && name !== selectedCountryRef.current) {
+              setSelectedCountry(name);
+            }
+          });
         }
         if (visitedStates && visitedStates.length) {
           map.addSource("visited-states", {
@@ -162,17 +214,30 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             data: { type: "FeatureCollection", features: visitedStates },
             promoteId: "name",
           });
+          // Show only the selected country's states. Filter is updated by a
+          // separate effect when selectedCountry changes.
+          const countryFilter: maplibregl.FilterSpecification = [
+            "==",
+            ["get", "country"],
+            selectedCountryRef.current,
+          ];
           map.addLayer({
             id: "visited-states-fill",
             type: "fill",
             source: "visited-states",
+            filter: countryFilter,
             paint: {
-              "fill-color": "#b30000",
+              "fill-color": [
+                "case",
+                ["==", ["get", "addedOn"], generatedDate],
+                "#ff3838",
+                "#b30000",
+              ],
               "fill-opacity": [
                 "case",
-                ["boolean", ["feature-state", "hover"], false],
-                0.18,
-                0.06,
+                ["==", ["get", "addedOn"], generatedDate],
+                ["case", ["boolean", ["feature-state", "hover"], false], 0.42, 0.28],
+                ["case", ["boolean", ["feature-state", "hover"], false], 0.18, 0.06],
               ],
             },
           });
@@ -180,6 +245,7 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
             id: "visited-states-outline",
             type: "line",
             source: "visited-states",
+            filter: countryFilter,
             paint: {
               "line-color": "#121212",
               "line-width": [
@@ -490,7 +556,44 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
       map.remove();
       mapRef.current = null;
     };
-  }, [geojson, bbox, mapKey, stadiaKey]);
+    // Intentionally only depends on map config: rebuilding the map on every
+    // data change (e.g. timelapse frames) would tear down the camera and
+    // markers. Data is fed in via the source-update effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapKey, stadiaKey]);
+
+  // Push new data into the map's existing GeoJSON sources without rebuilding
+  // the map, so timelapse / snapshot navigation stays smooth.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const apply = () => {
+      const explored = geojson.features.filter(
+        (f) => (f.properties as { kind?: string })?.kind === "explored",
+      );
+      const fog = geojson.features.find(
+        (f) => (f.properties as { kind?: string })?.kind === "fog",
+      );
+      const exploredSrc = map.getSource("explored") as maplibregl.GeoJSONSource | undefined;
+      if (exploredSrc) {
+        exploredSrc.setData({ type: "FeatureCollection", features: explored });
+      }
+      const fogSrc = map.getSource("fog") as maplibregl.GeoJSONSource | undefined;
+      if (fogSrc && fog) {
+        fogSrc.setData({ type: "FeatureCollection", features: [fog] });
+      }
+      const statesSrc = map.getSource("visited-states") as maplibregl.GeoJSONSource | undefined;
+      if (statesSrc && visitedStates) {
+        statesSrc.setData({ type: "FeatureCollection", features: visitedStates });
+      }
+      const countriesSrc = map.getSource("visited-countries") as maplibregl.GeoJSONSource | undefined;
+      if (countriesSrc && visitedCountries) {
+        countriesSrc.setData({ type: "FeatureCollection", features: visitedCountries });
+      }
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once("idle", apply);
+  }, [geojson, visitedStates, visitedCountries]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -528,6 +631,61 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
     if (map.isStyleLoaded()) apply();
     else map.once("idle", apply);
   }, [layers]);
+
+  // Sync state-layer filter to selectedCountry.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const filter: maplibregl.FilterSpecification = [
+      "==",
+      ["get", "country"],
+      selectedCountry,
+    ];
+    const apply = () => {
+      if (map.getLayer("visited-states-fill")) map.setFilter("visited-states-fill", filter);
+      if (map.getLayer("visited-states-outline")) map.setFilter("visited-states-outline", filter);
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once("idle", apply);
+  }, [selectedCountry]);
+
+  // Repaint fresh-region highlights when the snapshot date changes (timelapse).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const apply = () => {
+      if (map.getLayer("visited-states-fill")) {
+        map.setPaintProperty("visited-states-fill", "fill-color", [
+          "case",
+          ["==", ["get", "addedOn"], generatedDate],
+          "#ff3838",
+          "#b30000",
+        ]);
+        map.setPaintProperty("visited-states-fill", "fill-opacity", [
+          "case",
+          ["==", ["get", "addedOn"], generatedDate],
+          ["case", ["boolean", ["feature-state", "hover"], false], 0.42, 0.28],
+          ["case", ["boolean", ["feature-state", "hover"], false], 0.18, 0.06],
+        ]);
+      }
+      if (map.getLayer("visited-countries-fill")) {
+        map.setPaintProperty("visited-countries-fill", "fill-color", [
+          "case",
+          ["==", ["get", "addedOn"], generatedDate],
+          "#ff3838",
+          "#b30000",
+        ]);
+        map.setPaintProperty("visited-countries-fill", "fill-opacity", [
+          "case",
+          ["==", ["get", "addedOn"], generatedDate],
+          0.18,
+          0.04,
+        ]);
+      }
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once("idle", apply);
+  }, [generatedDate]);
 
   return (
     <>
@@ -673,6 +831,20 @@ export default function TravelsMap({ geojson, bbox, mapKey, stadiaKey, cities, s
                 <span className="ink-body">{label}</span>
               </label>
             ))}
+            {visitedCountryNames.length >= 2 && (
+              <label className="flex flex-row items-center gap-2 mt-1 pt-1 border-t border-[rgba(18,18,18,0.15)]">
+                <span className="ink-body">states for</span>
+                <select
+                  value={selectedCountry}
+                  onChange={(e) => setSelectedCountry(e.target.value)}
+                  className="bg-[rgba(246,241,230,0.9)] border border-[rgba(18,18,18,0.25)] px-1 py-[1px] text-xs ink-body"
+                >
+                  {visitedCountryNames.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
         )}
       </div>

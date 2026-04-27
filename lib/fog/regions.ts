@@ -82,7 +82,11 @@ export interface CityEntry {
 }
 export interface VisitedAdminFeature {
   type: "Feature";
-  properties: { name: string; blocks: number };
+  // `country` is set on visited STATES so the map can filter the state-level
+  // layer to one country at a time. Country features themselves don't carry it.
+  // `addedOn` (YYYY-MM-DD) is stamped by the cron diff when a region first
+  // appears in a daily snapshot, so the map can highlight fresh additions.
+  properties: { name: string; blocks: number; country?: string; addedOn?: string };
   geometry: Polygon | MultiPolygon;
 }
 export interface RegionStats {
@@ -208,17 +212,28 @@ export async function regionsForTiles(tiles: ParsedTile[]): Promise<RegionStats>
   const countriesList = toList(countryHits);
   const statesList = toList(stateHits);
 
+  const pickStr = (props: Record<string, unknown>, keys: string[]): string | undefined => {
+    for (const k of keys) {
+      const v = props[k];
+      if (typeof v === "string" && v.length) return v;
+    }
+    return undefined;
+  };
+
   const adminToFeat = (
     list: typeof countriesList,
     byName: Map<string, AdminFeature>,
+    extras?: (feat: AdminFeature) => Partial<VisitedAdminFeature["properties"]>,
   ): VisitedAdminFeature[] =>
     list
       .map((r) => {
         const feat = byName.get(r.name);
         if (!feat) return null;
+        const properties: VisitedAdminFeature["properties"] = { name: r.name, blocks: r.blocks };
+        if (extras) Object.assign(properties, extras(feat));
         return {
           type: "Feature" as const,
-          properties: { name: r.name, blocks: r.blocks },
+          properties,
           geometry: feat.geometry,
         };
       })
@@ -228,7 +243,11 @@ export async function regionsForTiles(tiles: ParsedTile[]): Promise<RegionStats>
     countries: countriesList,
     states: statesList,
     cities,
-    visitedStates: adminToFeat(statesList, stateByName),
+    // Tag each state with the country its NE feature belongs to so the map
+    // can filter "show states only for selected country."
+    visitedStates: adminToFeat(statesList, stateByName, (f) => ({
+      country: pickStr(f.properties, ["admin", "ADMIN", "geounit", "sovereignt"]),
+    })),
     visitedCountries: adminToFeat(countriesList, countryByName),
   };
 }

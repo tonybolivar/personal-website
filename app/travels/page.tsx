@@ -1,10 +1,8 @@
 import { get, list } from "@vercel/blob";
 import { Radio_Canada } from "next/font/google";
-import type { Feature, FeatureCollection } from "geojson";
+import type { FeatureCollection } from "geojson";
 import TravelsNav from "./TravelsNav";
-import TravelsMap from "./TravelsMap";
-import StatsBar from "./StatsBar";
-import SnapshotPicker from "./SnapshotPicker";
+import TravelsClient from "./TravelsClient";
 import { readPhotoIndex, type Photo } from "@/lib/travels/photos";
 
 const radio = Radio_Canada({ subsets: ["latin"], weight: ["400", "600"] });
@@ -24,7 +22,7 @@ interface CityEntry {
 }
 interface VisitedAdminFeature {
   type: "Feature";
-  properties: { name: string; blocks: number };
+  properties: { name: string; blocks: number; country?: string; addedOn?: string };
   geometry: unknown;
 }
 interface TravelsMeta {
@@ -65,16 +63,6 @@ async function loadTravels(snapshot: string | null = null): Promise<TravelsPaylo
   }
 }
 
-function formatSyncedAt(iso: string): string {
-  const d = new Date(iso);
-  const diff = Date.now() - d.getTime();
-  const hours = Math.round(diff / 3_600_000);
-  if (hours < 1) return "just now";
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  return `${days}d ago`;
-}
-
 async function listSnapshots(): Promise<string[]> {
   try {
     const { blobs } = await list({ prefix: "travels/history/" });
@@ -104,11 +92,11 @@ export default async function TravelsPage({
   ]);
   const mapKey = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
   const stadiaKey = process.env.NEXT_PUBLIC_STADIA_API_KEY ?? "";
-  const exploredCount = data
-    ? data.features.filter((f) => (f.properties as { kind?: string })?.kind === "explored").length
+  // snapshotsList is newest-first; index 0 is the latest. If the URL pinned
+  // a specific date, start the scrubber there; otherwise start at latest.
+  const initialFrame = snapshot
+    ? Math.max(0, snapshotsList.indexOf(snapshot))
     : 0;
-  const countries = data?.metadata.countries ?? [];
-  const states = data?.metadata.states ?? [];
 
   return (
     <div className={`${radio.className} fixed inset-0 flex flex-col bg-[var(--paper)]`}>
@@ -120,42 +108,28 @@ export default async function TravelsPage({
           <span className="ink-muted text-sm">/ travels</span>
         </div>
         <div className="flex flex-row items-center gap-4">
-          <SnapshotPicker snapshots={snapshotsList} selected={snapshot} />
           <TravelsNav />
         </div>
       </header>
 
       {data ? (
-        <StatsBar
-          countries={countries}
-          states={states}
-          exploredCount={exploredCount}
-          visitedPixelCount={data.metadata.visitedPixelCount}
-          syncedLabel={`synced ${formatSyncedAt(data.metadata.generatedAt)}`}
+        <TravelsClient
+          initial={data}
+          snapshots={snapshotsList}
+          initialFrame={initialFrame}
+          mapKey={mapKey}
+          stadiaKey={stadiaKey}
+          photos={photos}
         />
-      ) : null}
-
-      <main className="flex-1 relative">
-        {data ? (
-          <TravelsMap
-            geojson={{ type: "FeatureCollection", features: data.features }}
-            bbox={data.metadata.bbox}
-            mapKey={mapKey}
-            stadiaKey={stadiaKey}
-            cities={data.metadata.cities ?? []}
-            states={data.metadata.states ?? []}
-            visitedStates={(data.metadata.visitedStates ?? []) as unknown as Feature[]}
-            visitedCountries={(data.metadata.visitedCountries ?? []) as unknown as Feature[]}
-            photos={photos}
-          />
-        ) : (
+      ) : (
+        <main className="flex-1 relative">
           <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
             <p className="ink-muted max-w-md">
               Travel data not available yet. The first sync runs every 6 hours via a cron job.
             </p>
           </div>
-        )}
-      </main>
+        </main>
+      )}
     </div>
   );
 }
