@@ -19,7 +19,7 @@ const EDUCATION = [
   },
   {
     school: "Yonsei University",
-    href: "https://www.yonsei.ac.kr/en_sc/",
+    href: "https://www.yonsei.ac.kr/en_sc/index.do",
     detail: "Visiting Student · Gilman STEM Scholar",
     meta: "Fall 2026 · Seoul",
   },
@@ -30,8 +30,6 @@ const WORK = [
     text: "Co-Founder & CTO at ",
     org: "Raider Marketplace",
     href: "https://www.raidermarketplace.com/",
-    href2: "https://apps.apple.com/us/app/raider-market/id6760315849",
-    href2Label: "App Store",
     meta: "2026 – Present · Hamilton, NY",
   },
   {
@@ -57,9 +55,10 @@ const PROJECTS = [
   },
   {
     name: "Raider Marketplace",
-    meta: "identity-verified student marketplace · Colgate TIA venture · React, TypeScript, Supabase, RLS",
-    live: "https://www.colgatemarket.com/",
-    github: "",
+    meta: "identity-verified student marketplace · Colgate TIA venture · React, TypeScript, Supabase, RLS, Swift/SwiftUI",
+    live: "https://www.raidermarketplace.com/",
+    appstore: "https://apps.apple.com/us/app/raider-market/id6760315849",
+    github: "https://github.com/Raider-Marketplace",
   },
   {
     name: "Three Yakuza",
@@ -161,6 +160,16 @@ export default function Home() {
                       rel="noreferrer"
                     >
                       live
+                    </a>
+                  ) : null}
+                  {p.appstore ? (
+                    <a
+                      href={p.appstore}
+                      className="link-accent"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      app store
                     </a>
                   ) : null}
                   {p.github ? (
