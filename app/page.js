@@ -10,7 +10,28 @@ const radio = Radio_Canada({
   weight: "400",
 });
 
+const EDUCATION = [
+  {
+    school: "Colgate University",
+    href: "https://www.colgate.edu/",
+    detail: "B.A. Computer Science · QuestBridge Scholar",
+    meta: "2024 – 2027 · Hamilton, NY",
+  },
+  {
+    school: "Yonsei University",
+    href: "https://www.yonsei.ac.kr/en_sc/",
+    detail: "Visiting Student · Gilman STEM Scholar",
+    meta: "Fall 2026 · Seoul",
+  },
+];
+
 const WORK = [
+  {
+    text: "Co-Founder & CTO at ",
+    org: "Raider Marketplace",
+    href: "https://www.colgatemarket.com/",
+    meta: "2026 – Present · Hamilton, NY",
+  },
   {
     text: "Software Engineering Intern (Infrastructure & Automation) at ",
     org: "BMO Financial Group",
@@ -76,6 +97,28 @@ export default function Home() {
 
             <Navbar />
           </div>
+
+          <hr className="rule" />
+
+          {/* EDUCATION */}
+          <div className="section-title">EDUCATION</div>
+          {EDUCATION.map((e) => (
+            <div key={e.school} className="mb-6">
+              <p className="ink-body">
+                <a
+                  href={e.href}
+                  className="link-accent"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {e.school}
+                </a>
+                {" · "}
+                {e.detail}
+              </p>
+              <p className="ink-muted">{e.meta}</p>
+            </div>
+          ))}
 
           <hr className="rule" />
 
