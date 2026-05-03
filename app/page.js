@@ -29,7 +29,9 @@ const WORK = [
   {
     text: "Co-Founder & CTO at ",
     org: "Raider Marketplace",
-    href: "https://www.colgatemarket.com/",
+    href: "https://www.raidermarketplace.com/",
+    href2: "https://apps.apple.com/us/app/raider-market/id6760315849",
+    href2Label: "App Store",
     meta: "2026 – Present · Hamilton, NY",
   },
   {
