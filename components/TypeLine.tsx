@@ -2,11 +2,17 @@
 
 import { useEffect, useState } from "react";
 
+type Props = {
+  text: string;
+  speed?: number;
+  cursorHoldMs?: number;
+};
+
 export default function TypeLine({
   text,
   speed = 40,
   cursorHoldMs = 3000,
-}) {
+}: Props) {
   const [displayed, setDisplayed] = useState("");
   const [done, setDone] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
@@ -19,7 +25,7 @@ export default function TypeLine({
     setDone(false);
     setShowCursor(true);
 
-    const interval = setInterval(() => {
+    const interval: ReturnType<typeof setInterval> = setInterval(() => {
       i += 1;
       setDisplayed(text.slice(0, i));
 
@@ -28,7 +34,10 @@ export default function TypeLine({
         setDone(true);
 
         // hold cursor for a bit, then fade it out
-        const t = setTimeout(() => setShowCursor(false), cursorHoldMs);
+        const t: ReturnType<typeof setTimeout> = setTimeout(
+          () => setShowCursor(false),
+          cursorHoldMs,
+        );
         return () => clearTimeout(t);
       }
     }, speed);
