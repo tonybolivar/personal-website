@@ -33,6 +33,12 @@ const WORK = [
     meta: "2026 – Present · Hamilton, NY",
   },
   {
+    text: "Software Engineering Intern at ",
+    org: "Octave (Hexagon AB)",
+    href: "https://www.octave.com",
+    meta: "Summer 2026 · Remote",
+  },
+  {
     text: "Software Engineering Intern (Infrastructure & Automation) at ",
     org: "BMO Financial Group",
     href: "https://www.bmo.com/",
