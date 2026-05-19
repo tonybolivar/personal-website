@@ -45,7 +45,7 @@ const WORK = [
     meta: "Summer 2025 · NYC",
   },
   {
-    text: "IT Intern (Software Development) at ",
+    text: "IT Automation Intern at ",
     org: "Montgomery ISD",
     href: "https://www.misd.org/",
     meta: "Summer 2024 · Texas",
