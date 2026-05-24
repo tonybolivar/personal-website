@@ -73,12 +73,6 @@ const PROJECTS = [
     github: "https://github.com/tonybolivar/three-yakuza",
   },
   {
-    name: "Miku vs Teto Battle",
-    meta: "rhythm battle game · FNF-inspired PVP with AI powered chat · React, Three.js, Cloudflare Workers, Durable Objects, Workers AI",
-    live: "https://cf-ai-miku-teto-battle.tony-e-bolivar.workers.dev/",
-    github: "https://github.com/tonybolivar/cf_ai_miku_teto_battle",
-  },
-  {
     name: "lastfm-luau",
     meta: "typed, async API client for Luau · Roblox + Lune, full 57 method surface, DataStore-backed sessions, published to Wally",
     live: "https://wally.run/package/tonybolivar/lastfm-luau",
