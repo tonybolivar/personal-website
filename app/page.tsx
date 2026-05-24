@@ -54,17 +54,22 @@ const WORK = [
 
 const PROJECTS = [
   {
-    name: "Shapes & States",
-    meta: "real-time multiplayer political map simulator · multi-source Dijkstra's, WebSocket, FastAPI, NumPy, PostgreSQL",
-    live: "https://shapes-and-states.vercel.app/",
-    github: "https://github.com/tonybolivar/shapes-and-states",
-  },
-  {
     name: "Raider Marketplace",
     meta: "identity-verified student marketplace · Colgate TIA venture · React, TypeScript, Supabase, RLS, Swift/SwiftUI",
     live: "https://www.raidermarketplace.com/",
     appstore: "https://apps.apple.com/us/app/raider-market/id6760315849",
     github: "https://github.com/Raider-Marketplace",
+  },
+  {
+    name: "rbx-web",
+    meta: "Roblox-compatible runtime for the web · Luau-to-TypeScript compiler + a Three.js / Rapier runtime that implements Roblox's API surface so Roblox games run unmodified in a browser",
+    live: "https://rbx-web.vercel.app",
+  },
+  {
+    name: "Shapes & States",
+    meta: "real-time multiplayer political map simulator · multi-source Dijkstra's, WebSocket, FastAPI, NumPy, PostgreSQL",
+    live: "https://shapes-and-states.vercel.app/",
+    github: "https://github.com/tonybolivar/shapes-and-states",
   },
   {
     name: "Three Yakuza",
