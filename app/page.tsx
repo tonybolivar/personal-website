@@ -61,9 +61,10 @@ const PROJECTS = [
     github: "https://github.com/Raider-Marketplace",
   },
   {
-    name: "rbx-web",
-    meta: "Roblox-compatible runtime for the web · Luau-to-TypeScript compiler + a Three.js / Rapier runtime that implements Roblox's API surface so Roblox games run unmodified in a browser",
-    live: "https://rbx-web.vercel.app",
+    name: "luau2ts",
+    meta: "Luau-to-TypeScript compiler for Roblox · TypeScript, full AST round-trip",
+    live: "https://luau2ts.com",
+    github: "https://github.com/Luau2TS/luau2ts",
   },
   {
     name: "Shapes & States",
