@@ -78,6 +78,12 @@ const PROJECTS = [
     live: "https://cf-ai-miku-teto-battle.tony-e-bolivar.workers.dev/",
     github: "https://github.com/tonybolivar/cf_ai_miku_teto_battle",
   },
+  {
+    name: "lastfm-luau",
+    meta: "typed, async API client for Luau · Roblox + Lune, full 57 method surface, DataStore-backed sessions, published to Wally",
+    live: "https://wally.run/package/tonybolivar/lastfm-luau",
+    github: "https://github.com/tonybolivar/lastfm-luau",
+  },
 ];
 
 export default function Home() {
