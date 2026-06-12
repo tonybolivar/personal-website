@@ -10,7 +10,14 @@ const hoverStyle: React.CSSProperties = {
   textDecorationColor: "var(--accent)",
 };
 
-type HoverKey = "experience" | "travels" | "about" | "contact" | "resume";
+type HoverKey =
+  | "experience"
+  | "about"
+  | "travels"
+  | "roblox"
+  | "media"
+  | "contact"
+  | "resume";
 
 function Navbar() {
   const pathname = usePathname();
@@ -35,6 +42,14 @@ function Navbar() {
       </li>
 
       <li
+        className={`${linkBase} ${pathname === "/about" ? active : inactive}`}
+        onMouseEnter={() => setHovered("about")}
+        style={hovered === "about" ? hoverStyle : undefined}
+      >
+        <a href="/about">about</a>
+      </li>
+
+      <li
         className={`${linkBase} ${pathname === "/travels" ? active : inactive}`}
         onMouseEnter={() => setHovered("travels")}
         style={hovered === "travels" ? hoverStyle : undefined}
@@ -43,11 +58,19 @@ function Navbar() {
       </li>
 
       <li
-        className={`${linkBase} ${pathname === "/about" ? active : inactive}`}
-        onMouseEnter={() => setHovered("about")}
-        style={hovered === "about" ? hoverStyle : undefined}
+        className={`${linkBase} ${pathname === "/roblox" ? active : inactive}`}
+        onMouseEnter={() => setHovered("roblox")}
+        style={hovered === "roblox" ? hoverStyle : undefined}
       >
-        <a href="/about">about</a>
+        <a href="/roblox">roblox</a>
+      </li>
+
+      <li
+        className={`${linkBase} ${pathname === "/media" ? active : inactive}`}
+        onMouseEnter={() => setHovered("media")}
+        style={hovered === "media" ? hoverStyle : undefined}
+      >
+        <a href="/media">media</a>
       </li>
 
       <li

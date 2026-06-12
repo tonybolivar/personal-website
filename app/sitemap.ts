@@ -23,6 +23,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
     },
     {
+      url: "https://anthonybolivar.com/media",
+      lastModified: new Date(),
+    },
+    {
+      url: "https://anthonybolivar.com/roblox",
+      lastModified: new Date(),
+    },
+    {
       url: "https://anthonybolivar.com/travels",
       lastModified: new Date(),
     },
