@@ -13,6 +13,7 @@ type Project = {
   type: string;
   image: string;
   imageAlt: string;
+  video?: string;
   headline: string;
   summary: string;
   systems: string[];
@@ -24,15 +25,23 @@ type Project = {
   imagePosition?: string;
 };
 
-const CAPABILITIES = [
-  "gameplay loops",
-  "combat and AI",
-  "tycoon economies",
-  "inventory systems",
-  "save data",
-  "responsive UI",
-  "Rojo architecture",
-  "Luau tooling",
+const ADVANCED_SCRIPTS = [
+  "gun systems / FPS frameworks",
+  "melee combat",
+  "enemy AI and pathfinding",
+  "tower defense / lane combat",
+  "tycoon and upgrade systems",
+  "inventory, hotbar, and tools",
+  "shop, trading, and marketplace UI",
+  "DataStore / ProfileStore saves",
+  "quest and reward systems",
+  "pet / companion systems",
+  "placement and building systems",
+  "rounds, waves, and matchmaking",
+  "abilities and cooldowns",
+  "leaderboards and stats",
+  "custom UI controllers",
+  "admin and dev tooling",
 ];
 
 const SERVICES = [
@@ -47,6 +56,26 @@ const SERVICES = [
 const PAYMENT_METHODS = ["Robux", "PayPal"];
 
 const PROJECTS: Project[] = [
+  {
+    id: "gun-system",
+    name: "Gun System",
+    type: "combat framework",
+    image: "/roblox/gun-system-poster.jpg",
+    video: "/roblox/gun-system.mp4",
+    imageAlt: "Roblox gun system gameplay video",
+    headline:
+      "A custom combat/gun framework with weapon handling and live gameplay feedback.",
+    summary:
+      "First-person/third-person weapon behavior, equipped weapon UI, aiming feedback, firing flow, and combat-ready game feel.",
+    systems: [
+      "weapon handling",
+      "combat UI",
+      "camera feel",
+      "tool states",
+      "gameplay feedback",
+    ],
+    stack: "Luau, Roblox Studio, combat scripting",
+  },
   {
     id: "roll-a-needoh",
     name: "Roll a Needoh",
@@ -91,8 +120,9 @@ const PROJECTS: Project[] = [
     id: "collect-slimes",
     name: "Collect Slimes!",
     type: "collection simulator",
-    image: "/roblox/collect-slimes.png",
-    imageAlt: "Collect Slimes Roblox gameplay screenshot",
+    image: "/roblox/collect-slimes-poster.jpg",
+    video: "/roblox/collect-slimes.mp4",
+    imageAlt: "Collect Slimes Roblox gameplay video",
     headline:
       "Prompt-based collection, rarity, inventory, selling, and readable arcade UI.",
     summary:
@@ -164,6 +194,36 @@ function ProjectPill({ label }: { label: string }) {
   );
 }
 
+function MediaPreview({ project }: { project: Project }) {
+  const className =
+    "aspect-video w-full border-b border-[rgba(18,18,18,0.14)] object-cover";
+
+  if (project.video) {
+    return (
+      <video
+        className={className}
+        controls
+        muted
+        playsInline
+        preload="metadata"
+        poster={project.image}
+        style={{ objectPosition: project.imagePosition ?? "center" }}
+      >
+        <source src={project.video} type="video/mp4" />
+      </video>
+    );
+  }
+
+  return (
+    <img
+      src={project.image}
+      alt={project.imageAlt}
+      className={className}
+      style={{ objectPosition: project.imagePosition ?? "center" }}
+    />
+  );
+}
+
 function PricingPanel() {
   return (
     <section className="mt-10 rounded-md border border-[rgba(18,18,18,0.16)] bg-[rgba(255,255,255,0.18)] p-5">
@@ -218,12 +278,7 @@ function ProjectCard({ project }: { project: Project }) {
       id={project.id}
       className="scroll-mt-8 overflow-hidden rounded-md border border-[rgba(18,18,18,0.16)] bg-[rgba(255,255,255,0.18)]"
     >
-      <img
-        src={project.image}
-        alt={project.imageAlt}
-        className="aspect-video w-full border-b border-[rgba(18,18,18,0.14)] object-cover"
-        style={{ objectPosition: project.imagePosition ?? "center" }}
-      />
+      <MediaPreview project={project} />
 
       <div className="p-5">
         <p className="text-xs uppercase tracking-[0.2em] ink-muted">
@@ -299,8 +354,8 @@ export default function RobloxPage() {
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-8 ink-muted">
                 Playable loops, worlds, combat, economies, persistence, UI,
-                Rojo pipelines, Studio workflows, and Luau tooling. Every
-                project below has a real screenshot or captured page.
+                Rojo pipelines, Studio workflows, and Luau tooling. I can build
+                full systems or jump into advanced scripts for an existing game.
               </p>
             </div>
 
@@ -325,8 +380,9 @@ export default function RobloxPage() {
             </div>
           </div>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {CAPABILITIES.map((capability) => (
+          <div className="section-title">ADVANCED SCRIPTS</div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {ADVANCED_SCRIPTS.map((capability) => (
               <Capability key={capability} label={capability} />
             ))}
           </div>
