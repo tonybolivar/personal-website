@@ -35,6 +35,17 @@ const CAPABILITIES = [
   "Luau tooling",
 ];
 
+const SERVICES = [
+  "game systems",
+  "UI implementation",
+  "bug fixing",
+  "Rojo setup",
+  "data/persistence",
+  "tooling/scripts",
+];
+
+const PAYMENT_METHODS = ["Robux", "PayPal"];
+
 const PROJECTS: Project[] = [
   {
     id: "roll-a-needoh",
@@ -150,6 +161,54 @@ function ProjectPill({ label }: { label: string }) {
     <span className="rounded border border-[rgba(18,18,18,0.16)] bg-[rgba(255,255,255,0.24)] px-2.5 py-1 text-xs ink-muted">
       {label}
     </span>
+  );
+}
+
+function PricingPanel() {
+  return (
+    <section className="mt-10 rounded-md border border-[rgba(18,18,18,0.16)] bg-[rgba(255,255,255,0.18)] p-5">
+      <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] ink-muted">
+            Pricing
+          </p>
+          <h2 className="mt-2 text-xl font-semibold tracking-normal ink-title">
+            Available for scoped Roblox work.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 ink-muted">
+            Pricing depends on the size of the job, how much of the system I am
+            owning, and whether it is a quick fix, a feature, or a full gameplay
+            loop. Send the scope and I can quote it before starting.
+          </p>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {SERVICES.map((service) => (
+              <ProjectPill key={service} label={service} />
+            ))}
+          </div>
+        </div>
+
+        <div className="border-t border-[rgba(18,18,18,0.14)] pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+          <p className="text-xs uppercase tracking-[0.2em] ink-muted">
+            Accepted payment
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+            {PAYMENT_METHODS.map((method) => (
+              <div
+                key={method}
+                className="rounded border border-[rgba(18,18,18,0.16)] bg-[rgba(255,255,255,0.22)] px-3 py-2 ink-body"
+              >
+                {method}
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-sm leading-6 ink-muted">
+            I can work with either, depending on the project and what is easier
+            for the client.
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -271,6 +330,8 @@ export default function RobloxPage() {
               <Capability key={capability} label={capability} />
             ))}
           </div>
+
+          <PricingPanel />
 
           <div className="section-title">PROJECTS</div>
           <div className="grid gap-6 lg:grid-cols-2">
