@@ -10,36 +10,27 @@ const radio = Radio_Canada({
 const MEDIA_ITEMS = [
   {
     source: "Colgate University",
-    category: "Entrepreneurship & Innovation News",
+    category: "Entrepreneurship & Innovation",
     title:
       "Raider Market Aims to Create a Colgate-Centered Marketplace for Student-Led Businesses",
     href: "https://www.colgate.edu/success-after-colgate/entrepreneurship-and-innovation/entrepreneurship-innovation-news-and-53",
     date: "June 4, 2026",
     byline: "Alana Conolly",
     summary:
-      "Coverage of Raider Market, the Colgate student marketplace founded through the TIA Incubator by Thomas Sfikas '28 and Anthony Bolivar '28.",
-    detail:
-      "The article covers the product, the entrepreneurship program support, and the technical challenge of building one backend for both mobile and web clients.",
+      "I was featured for my work building Raider Market, a Colgate-only marketplace app developed through the TIA Incubator with Thomas Sfikas '28.",
+    note:
+      "I talked about the technical side of the project: designing one backend that could support both the mobile app and the web platform.",
   },
 ];
 
-function ColgateMark() {
+function ColgateLogo() {
   return (
-    <div className="flex aspect-video w-full flex-col justify-between rounded-md border border-[#821019] bg-[rgba(130,16,25,0.08)] p-5">
-      <div>
-        <p className="text-xs uppercase tracking-[0.28em] text-[#821019]">
-          Colgate
-        </p>
-        <p className="mt-2 text-3xl font-semibold tracking-normal text-[#821019]">
-          University
-        </p>
-      </div>
-
-      <div className="h-px w-full bg-[#821019]/30" />
-
-      <p className="text-xs uppercase tracking-[0.2em] text-[#821019]">
-        Entrepreneurship & Innovation
-      </p>
+    <div className="flex h-24 items-center justify-center rounded-md bg-[#821019] px-5">
+      <img
+        src="/colgate-logo-white.svg"
+        alt="Colgate University"
+        className="max-h-9 w-full max-w-[210px] object-contain"
+      />
     </div>
   );
 }
@@ -83,32 +74,34 @@ export default function MediaPage() {
             {MEDIA_ITEMS.map((item) => (
               <article
                 key={item.href}
-                className="grid gap-5 rounded-md border border-[rgba(18,18,18,0.16)] bg-[rgba(255,255,255,0.18)] p-5 md:grid-cols-[0.85fr_1.15fr]"
+                className="rounded-md border border-[rgba(18,18,18,0.16)] bg-[rgba(255,255,255,0.18)] p-5"
               >
-                <ColgateMark />
+                <div className="grid gap-5 md:grid-cols-[200px_1fr]">
+                  <ColgateLogo />
 
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] ink-muted">
-                    {item.source} - {item.category}
-                  </p>
-                  <h2 className="mt-3 text-xl font-semibold tracking-normal ink-title">
-                    {item.title}
-                  </h2>
-                  <p className="mt-2 text-sm ink-muted">
-                    By {item.byline} - {item.date}
-                  </p>
-                  <p className="mt-4 leading-7 ink-body">{item.summary}</p>
-                  <p className="mt-3 text-sm leading-6 ink-muted">
-                    {item.detail}
-                  </p>
-                  <a
-                    href={item.href}
-                    className="link-accent mt-4 inline-block"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    read article
-                  </a>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] ink-muted">
+                      {item.source} - {item.category}
+                    </p>
+                    <h2 className="mt-3 text-xl font-semibold tracking-normal ink-title">
+                      {item.title}
+                    </h2>
+                    <p className="mt-2 text-sm ink-muted">
+                      By {item.byline} - {item.date}
+                    </p>
+                    <p className="mt-4 leading-7 ink-body">{item.summary}</p>
+                    <p className="mt-3 text-sm leading-6 ink-muted">
+                      {item.note}
+                    </p>
+                    <a
+                      href={item.href}
+                      className="link-accent mt-4 inline-block"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      read article
+                    </a>
+                  </div>
                 </div>
               </article>
             ))}
