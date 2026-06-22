@@ -26,7 +26,7 @@ type Project = {
 };
 
 const ADVANCED_SCRIPTS = [
-  "gun systems / FPS frameworks",
+  "combat systems",
   "melee combat",
   "enemy AI and pathfinding",
   "tower defense / lane combat",
@@ -57,24 +57,29 @@ const PAYMENT_METHODS = ["Robux", "PayPal"];
 
 const PROJECTS: Project[] = [
   {
-    id: "gun-system",
-    name: "Gun System",
-    type: "combat framework",
-    image: "/roblox/gun-system-poster.jpg",
-    video: "/roblox/gun-system.mp4",
-    imageAlt: "Roblox gun system gameplay video",
+    id: "evade-lander",
+    name: "Evade Lander",
+    type: "live Roblox game - 1.9M+ visits",
+    image: "/roblox/evade-lander.png",
+    imageAlt: "Evade Lander Roblox game thumbnail",
     headline:
-      "A custom combat/gun framework with weapon handling and live gameplay feedback.",
+      "Lead developer and scripter on a live Roblox game with 1.9M+ visits.",
     summary:
-      "First-person/third-person weapon behavior, equipped weapon UI, aiming feedback, firing flow, and combat-ready game feel.",
+      "Owned the gameplay systems, round flow, and live operations for a published title at scale, shipping and maintaining features for an active player base.",
     systems: [
-      "weapon handling",
-      "combat UI",
-      "camera feel",
-      "tool states",
-      "gameplay feedback",
+      "round flow",
+      "gameplay systems",
+      "live ops",
+      "performance",
+      "player data",
     ],
-    stack: "Luau, Roblox Studio, combat scripting",
+    stack: "Luau, Roblox Studio",
+    links: [
+      {
+        label: "play",
+        href: "https://www.roblox.com/games/86289234427984/Evade-Lander",
+      },
+    ],
   },
   {
     id: "roll-a-needoh",
