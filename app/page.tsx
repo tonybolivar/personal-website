@@ -14,14 +14,14 @@ const EDUCATION = [
   {
     school: "Colgate University",
     href: "https://www.colgate.edu/",
-    detail: "B.A. Computer Science · QuestBridge Scholar",
-    meta: "2024 – 2027 · Hamilton, NY",
+    detail: "B.A. Computer Science - QuestBridge Scholar",
+    meta: "2024 - 2027 - Hamilton, NY",
   },
   {
     school: "Yonsei University",
     href: "https://www.yonsei.ac.kr/en_sc/index.do",
-    detail: "Visiting Student · Gilman STEM Scholar",
-    meta: "Fall 2026 · Seoul",
+    detail: "Visiting Student - Gilman STEM Scholar",
+    meta: "Fall 2026 - Seoul",
   },
 ];
 
@@ -30,57 +30,64 @@ const WORK = [
     text: "Co-Founder & CTO at ",
     org: "Raider Marketplace",
     href: "https://www.raidermarketplace.com/",
-    meta: "2026 – Present · Hamilton, NY",
+    meta: "2026 - Present - Hamilton, NY",
   },
   {
     text: "Software Engineering Intern at ",
     org: "Octave (Hexagon AB)",
     href: "https://www.octave.com",
-    meta: "Summer 2026 · Remote",
+    meta: "Summer 2026 - Remote",
   },
   {
     text: "Software Engineering Intern (Infrastructure & Automation) at ",
     org: "BMO Financial Group",
     href: "https://www.bmo.com/",
-    meta: "Summer 2025 · NYC",
+    meta: "Summer 2025 - NYC",
   },
   {
     text: "IT Automation Intern at ",
     org: "Montgomery ISD",
     href: "https://www.misd.org/",
-    meta: "Summer 2024 · Texas",
+    meta: "Summer 2024 - Texas",
   },
 ];
 
 const PROJECTS = [
   {
+    name: "Roblox Unified Source",
+    meta: "strict Luau source of truth refactored from a 483-script Roblox game - DataStores, remotes, monetization, progression systems, Rojo, 175 GUI trees",
+    live: "/roblox#unified-src",
+    liveLabel: "case study",
+    github: "https://github.com/tonybolivar/roblox-unified-src",
+  },
+  {
     name: "Raider Marketplace",
-    meta: "identity-verified student marketplace · Colgate TIA venture · React, TypeScript, Supabase, RLS, Swift/SwiftUI",
+    meta: "identity-verified student marketplace - Colgate TIA venture - React, TypeScript, Supabase, RLS, Swift/SwiftUI",
     live: "https://www.raidermarketplace.com/",
     appstore: "https://apps.apple.com/us/app/raider-market/id6760315849",
     github: "https://github.com/Raider-Marketplace",
   },
   {
     name: "luau2ts",
-    meta: "Luau-to-TypeScript compiler for Roblox · TypeScript, full AST round-trip",
+    meta: "Luau-to-TypeScript compiler for Roblox - TypeScript, full AST round-trip",
     live: "https://luau2ts.com",
     github: "https://github.com/Luau2TS/luau2ts",
   },
   {
     name: "Shapes & States",
-    meta: "real-time multiplayer political map simulator · multi-source Dijkstra's, WebSocket, FastAPI, NumPy, PostgreSQL",
+    meta: "real-time multiplayer political map simulator - multi-source Dijkstra's, WebSocket, FastAPI, NumPy, PostgreSQL",
     live: "https://shapes-and-states.vercel.app/",
     github: "https://github.com/tonybolivar/shapes-and-states",
   },
   {
     name: "Three Yakuza",
-    meta: "browser-native Three.js loaders for Yakuza / Like a Dragon game assets · .gmt/.gmd/.par parsers, WebGL, TypeScript",
+    meta: "browser-native Three.js loaders for Yakuza / Like a Dragon game assets - .gmt/.gmd/.par parsers, WebGL, TypeScript",
     live: "https://three-yakuza-gmt-viewer.vercel.app",
     github: "https://github.com/tonybolivar/three-yakuza",
   },
   {
     name: "lastfm-luau",
-    meta: "typed, async API client for Luau · Roblox + Lune, full 57 method surface, DataStore-backed sessions, published to Wally",
+    meta: "typed, async API client for Luau - Roblox + Lune, full 57 method surface, DataStore-backed sessions, published to Wally",
     live: "https://wally.run/package/tonybolivar/lastfm-luau",
     github: "https://github.com/tonybolivar/lastfm-luau",
   },
@@ -95,7 +102,7 @@ export default function Home() {
           <div className="flex flex-row justify-between items-start gap-6">
             <div>
               <p className="custom-text-18 ink-title">Anthony Bolivar</p>
-              <TypeLine text="CS · systems & automation · building things" />
+              <TypeLine text="CS - Roblox systems, tooling, automation" />
               <p className="ink-muted text-sm mt-1">
                 <a
                   href="/resume.pdf"
@@ -126,7 +133,7 @@ export default function Home() {
                 >
                   {e.school}
                 </a>
-                {" · "}
+                {" - "}
                 {e.detail}
               </p>
               <p className="ink-muted">{e.meta}</p>
@@ -171,7 +178,7 @@ export default function Home() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      live
+                      {p.liveLabel ?? "live"}
                     </a>
                   ) : null}
                   {p.appstore ? (

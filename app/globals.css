@@ -8,9 +8,8 @@ body {
 
 /* Define media query for mobile devices */
 @media (max-width: 680px) {
-    /* Set smaller font size for mobile */
     body {
-        font-size: 12px;
+        font-size: 14px;
     }
 }
 
@@ -83,7 +82,48 @@ html, body {
   border-top: 1px solid rgba(18, 18, 18, 0.18);
 }
 
-/* travels page — city markers on the map */
+/* roblox page - live player pulse */
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #17924a;
+  box-shadow: 0 0 0 3px rgba(23, 146, 74, 0.18);
+  flex-shrink: 0;
+  animation: live-pulse 1.8s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 3px rgba(23, 146, 74, 0.18); }
+  50% { opacity: 0.55; box-shadow: 0 0 0 5px rgba(23, 146, 74, 0.05); }
+}
+
+/* roblox page - card lift */
+.game-card {
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 260ms ease;
+  will-change: transform;
+}
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 45px rgba(18, 18, 18, 0.16);
+  border-color: rgba(179, 0, 0, 0.4);
+}
+.game-thumb {
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.game-card:hover .game-thumb {
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+  .game-card, .game-thumb { transition: none; }
+  .game-card:hover { transform: none; }
+  .game-card:hover .game-thumb { transform: none; }
+}
+
+/* travels page - city markers on the map */
 .travels-city-marker {
   display: var(--cities-display, flex);
   flex-direction: row;
@@ -114,8 +154,8 @@ html, body {
   white-space: nowrap;
 }
 
-/* travels page — photo markers */
-/* travels page — alma mater pin */
+/* travels page - photo markers */
+/* travels page - alma mater pin */
 .travels-almamater {
   display: flex;
   flex-direction: row;
@@ -169,7 +209,7 @@ html, body {
   box-shadow: 0 0 0 1px rgba(18, 18, 18, 0.45), 0 1px 3px rgba(18, 18, 18, 0.2);
   cursor: pointer;
   pointer-events: auto;
-  /* Zoom-responsive scale — set by TravelsMap on zoom events. */
+  /* Zoom-responsive scale - set by TravelsMap on zoom events. */
   transform: scale(var(--photo-marker-scale, 1));
   transform-origin: center;
   transition: transform 120ms ease;
