@@ -54,13 +54,6 @@ const WORK = [
 
 const PROJECTS = [
   {
-    name: "Roblox Unified Source",
-    meta: "strict Luau source of truth refactored from a 483-script Roblox game - DataStores, remotes, monetization, progression systems, Rojo, 175 GUI trees",
-    live: "/roblox#unified-src",
-    liveLabel: "case study",
-    github: "https://github.com/tonybolivar/roblox-unified-src",
-  },
-  {
     name: "Raider Marketplace",
     meta: "identity-verified student marketplace - Colgate TIA venture - React, TypeScript, Supabase, RLS, Swift/SwiftUI",
     live: "https://www.raidermarketplace.com/",
@@ -178,7 +171,7 @@ export default function Home() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      {p.liveLabel ?? "live"}
+                      live
                     </a>
                   ) : null}
                   {p.appstore ? (
