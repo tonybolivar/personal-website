@@ -894,9 +894,10 @@ export default async function RobloxPage() {
                 meet. I can own a feature from blank script to production module, or step into an
                 existing codebase and make it safer without stalling the team.
               </p>
-              <a href="mailto:abolivar@colgate.edu" className="mt-5 inline-block link-accent">
-                abolivar@colgate.edu
-              </a>
+              <div className="mt-5">
+                <p className="text-xs uppercase tracking-[0.16em] ink-muted">discord</p>
+                <p className="mt-1 text-base font-semibold ink-title">deathcow</p>
+              </div>
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2">
