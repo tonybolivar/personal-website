@@ -95,7 +95,7 @@ export default function Home() {
           <div className="flex flex-row justify-between items-start gap-6">
             <div>
               <p className="custom-text-18 ink-title">Anthony Bolivar</p>
-              <TypeLine text="CS - Roblox systems, tooling, automation" />
+              <TypeLine text="CS - software engineering, tooling, automation" />
               <p className="ink-muted text-sm mt-1">
                 <a
                   href="/resume.pdf"
