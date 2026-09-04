@@ -218,3 +218,34 @@ html, body {
   transform: scale(calc(var(--photo-marker-scale, 1) * 1.4));
   background: #b30000;
 }
+
+/* agent dropdown */
+.agent-note summary {
+  cursor: pointer;
+  width: fit-content;
+  list-style: none;
+}
+
+.agent-note summary::-webkit-details-marker {
+  display: none;
+}
+
+.agent-note summary::before {
+  content: "▸ ";
+  color: var(--accent);
+}
+
+.agent-note[open] summary::before {
+  content: "▾ ";
+}
+
+.agent-note-body {
+  margin-top: 1rem;
+  padding-left: 1.1rem;
+  border-left: 2px solid rgba(179, 0, 0, 0.35);
+  font-size: 0.95em;
+}
+
+.agent-note-body p + p {
+  margin-top: 0.75rem;
+}
