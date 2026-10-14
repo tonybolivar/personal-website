@@ -110,7 +110,7 @@ export function formatDuration(ms: number, withSeconds = false): string {
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
-  if (h) return `${h} h ${m} min`;
+  if (h) return m ? `${h} h ${m} min` : `${h} h`;
   if (withSeconds) return m ? `${m} min ${s} sec` : `${s} sec`;
   return `${m} min`;
 }
