@@ -59,6 +59,7 @@ function safeEqual(a: string, b: string): boolean {
 
 export function checkPassword(candidate: string): boolean {
   const s = secret();
+  console.log(`[immersion] secret configured=${Boolean(s)} len=${s.length} candidateLen=${candidate.length}`);
   return Boolean(s) && safeEqual(candidate, s);
 }
 
