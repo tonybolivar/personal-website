@@ -9,6 +9,10 @@
 //   node scripts/immersion-anki-sync.mjs --dry           # print, don't post
 //   IMMERSION_URL=http://localhost:3000 node scripts/immersion-anki-sync.mjs
 //
+// Runs every 30 minutes on Tony's Mac through the launchd agent
+// ~/Library/LaunchAgents/com.anthonybolivar.immersion-anki-sync.plist.
+// Exits quietly when Anki is closed and only posts when the count changed.
+//
 // LANGS maps a language id on the site to an Anki search and the script
 // (Unicode range) a word has to contain to count.
 
@@ -69,9 +73,28 @@ if (!dry && !secret) {
   process.exit(1);
 }
 
+let current = {};
+try {
+  const site = await (await fetch(`${siteUrl}/api/immersion`)).json();
+  current = Object.fromEntries(site.languages.map((l) => [l.id, l.words]));
+} catch {}
+
 for (const [lang, cfg] of Object.entries(LANGS)) {
   if (only && lang !== only) continue;
-  const words = await countWords(cfg);
+  let words;
+  try {
+    words = await countWords(cfg);
+  } catch (err) {
+    if (err?.cause?.code === "ECONNREFUSED") {
+      console.log(`${new Date().toISOString()} Anki is not running, skipped`);
+      process.exit(0);
+    }
+    throw err;
+  }
+  if (!dry && current[lang] === words) {
+    console.log(`${new Date().toISOString()} ${lang}: ${words} words, unchanged`);
+    continue;
+  }
   if (dry) {
     console.log(`${lang}: ${words} words`);
     continue;
@@ -82,5 +105,5 @@ for (const [lang, cfg] of Object.entries(LANGS)) {
     body: JSON.stringify({ op: "setWords", lang, words }),
   });
   const body = await res.json().catch(() => ({}));
-  console.log(`${lang}: ${words} words -> ${res.status} ${body.ok ? "saved" : body.error || ""}`);
+  console.log(`${new Date().toISOString()} ${lang}: ${words} words -> ${res.status} ${body.ok ? "saved" : body.error || ""}`);
 }
