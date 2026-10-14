@@ -15,7 +15,7 @@ import {
 
 // Per-language touches for the hero. Anything not listed falls back to English.
 const FLAVOR: Record<string, { line: string; motto?: string }> = {
-  korean: { line: "한국어 공부 중", motto: "하루하루 조금씩 · a little every day" },
+  korean: { line: "한국어 공부 중", motto: "하루하루 조금씩" },
 };
 
 export function headerLine(lang: Language) {
