@@ -34,5 +34,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: "https://anthonybolivar.com/travels",
       lastModified: new Date(),
     },
+    {
+      url: "https://anthonybolivar.com/immersion",
+      lastModified: new Date(),
+    },
   ];
 }
