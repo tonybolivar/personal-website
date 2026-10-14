@@ -43,8 +43,10 @@ export async function writeData(data: ImmersionData): Promise<void> {
   }
 }
 
+// Tolerates whitespace or quotes pasted into the env var along with the value.
 function secret(): string {
-  return process.env.IMMERSION_SECRET || process.env.CRON_SECRET || "";
+  const raw = process.env.IMMERSION_SECRET || process.env.CRON_SECRET || "";
+  return raw.trim().replace(/^(["'])(.*)\1$/, "$2").trim();
 }
 
 export function sessionToken(): string {
@@ -59,7 +61,6 @@ function safeEqual(a: string, b: string): boolean {
 
 export function checkPassword(candidate: string): boolean {
   const s = secret();
-  console.log(`[immersion] secret configured=${Boolean(s)} len=${s.length} candidateLen=${candidate.length}`);
   return Boolean(s) && safeEqual(candidate, s);
 }
 
