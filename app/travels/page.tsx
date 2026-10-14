@@ -1,11 +1,9 @@
 import { get, list } from "@vercel/blob";
-import { Radio_Canada } from "next/font/google";
+import { radio } from "@/lib/fonts";
 import type { FeatureCollection } from "geojson";
 import TravelsNav from "./TravelsNav";
 import TravelsClient from "./TravelsClient";
 import { readPhotoIndex, type Photo } from "@/lib/travels/photos";
-
-const radio = Radio_Canada({ subsets: ["latin"], weight: ["400", "600"] });
 
 export const dynamic = "force-dynamic";
 

@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
-import { Radio_Canada } from "next/font/google";
+import { radio } from "@/lib/fonts";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-
-const radio = Radio_Canada({
-  subsets: ["latin"],
-  weight: ["400", "600"],
-});
-
 
 export const metadata: Metadata = {
   title: {

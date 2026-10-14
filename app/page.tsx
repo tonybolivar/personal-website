@@ -1,14 +1,9 @@
 "use client";
 
-import { Radio_Canada } from "next/font/google";
+import { radio } from "@/lib/fonts";
 import React from "react";
 import Navbar from "@/components/Navbar";
 import TypeLine from "@/components/TypeLine";
-
-const radio = Radio_Canada({
-  subsets: ["latin"],
-  weight: "400",
-});
 
 const EDUCATION = [
   {

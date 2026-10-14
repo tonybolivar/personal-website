@@ -2,12 +2,7 @@
 
 import React from "react";
 import Navbar from "@/components/Navbar";
-import { Radio_Canada } from "next/font/google";
-
-const radio = Radio_Canada({
-  subsets: ["latin"],
-  weight: "400",
-});
+import { radio } from "@/lib/fonts";
 
 export default function Home() {
   return (
