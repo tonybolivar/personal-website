@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Radio_Canada } from "next/font/google";
 import SiteHeader from "@/components/immersion/SiteHeader";
 import Heatmap from "@/components/immersion/Heatmap";
 import { readData } from "@/lib/immersion/store";
@@ -15,8 +14,6 @@ import {
   sessionMs,
   type Session,
 } from "@/lib/immersion/model";
-
-const radio = Radio_Canada({ subsets: ["latin"], weight: ["400", "600"] });
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +61,7 @@ export default async function LanguagePage({ params }: { params: { lang: string 
     new Date(`${key}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "short", month: "long", day: "numeric", timeZone: "UTC" });
 
   return (
-    <div className={`${radio.className} max-w-3xl w-full mx-auto px-6`}>
+    <div className="max-w-3xl w-full mx-auto px-6">
       <div className="w-full paper-surface">
         <div className="min-h-screen py-10">
           <SiteHeader line={`learning ${lang.name.toLowerCase()}`} />

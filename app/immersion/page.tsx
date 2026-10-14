@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { Radio_Canada } from "next/font/google";
 import SiteHeader from "@/components/immersion/SiteHeader";
 import { readData } from "@/lib/immersion/store";
 import { formatHours, langStats } from "@/lib/immersion/model";
-
-const radio = Radio_Canada({ subsets: ["latin"], weight: ["400", "600"] });
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +15,7 @@ export default async function ImmersionIndex() {
   const langs = data.languages.map((l) => ({ lang: l, stats: langStats(data, l.id) }));
 
   return (
-    <div className={`${radio.className} max-w-3xl w-full mx-auto px-6`}>
+    <div className="max-w-3xl w-full mx-auto px-6">
       <div className="w-full paper-surface">
         <div className="min-h-screen py-10">
           <SiteHeader line="languages, one hour at a time" />
