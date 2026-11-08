@@ -9,12 +9,12 @@ export const metadata: Metadata = {
     template: "%s | Anthony Bolivar",
   },
   description:
-    "Anthony Bolivar - Roblox systems developer and computer science student building games, tooling, automation, and production-ready software.",
+    "Anthony Bolivar - ML developer and computer science student building games, tooling, automation, and production-ready software.",
   metadataBase: new URL("https://anthonybolivar.com"),
   openGraph: {
     title: "Anthony Bolivar",
     description:
-      "Portfolio of Anthony Bolivar - Roblox systems, Luau tooling, games, automation, and software engineering.",
+      "Portfolio of Anthony Bolivar - ML, Luau tooling, games, automation, and software engineering.",
     url: "https://anthonybolivar.com",
     siteName: "Anthony Bolivar",
     locale: "en_US",
