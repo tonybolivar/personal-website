@@ -15,7 +15,6 @@ type HoverKey =
   | "about"
   | "travels"
   | "immersion"
-  | "roblox"
   | "media"
   | "contact"
   | "resume";
@@ -64,14 +63,6 @@ function Navbar() {
         style={hovered === "immersion" ? hoverStyle : undefined}
       >
         <a href="/immersion">immersion</a>
-      </li>
-
-      <li
-        className={`${linkBase} ${pathname === "/roblox" ? active : inactive}`}
-        onMouseEnter={() => setHovered("roblox")}
-        style={hovered === "roblox" ? hoverStyle : undefined}
-      >
-        <a href="/roblox">roblox</a>
       </li>
 
       <li

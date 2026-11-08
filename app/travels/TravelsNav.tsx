@@ -6,7 +6,6 @@ const LINKS = [
   { href: "/", label: "experience" },
   { href: "/travels", label: "travels" },
   { href: "/about", label: "about" },
-  { href: "/roblox", label: "roblox" },
   { href: "/media", label: "media" },
   { href: "mailto:abolivar@colgate.edu", label: "contact" },
   { href: "/ABResume.pdf", label: "resume", external: true },

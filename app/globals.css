@@ -82,7 +82,7 @@ html, body {
   border-top: 1px solid rgba(18, 18, 18, 0.18);
 }
 
-/* roblox page - live player pulse */
+/* live pulse dot */
 .live-dot {
   width: 8px;
   height: 8px;
@@ -97,30 +97,8 @@ html, body {
   50% { opacity: 0.55; box-shadow: 0 0 0 5px rgba(23, 146, 74, 0.05); }
 }
 
-/* roblox page - card lift */
-.game-card {
-  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 260ms ease;
-  will-change: transform;
-}
-.game-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 22px 45px rgba(18, 18, 18, 0.16);
-  border-color: rgba(179, 0, 0, 0.4);
-}
-.game-thumb {
-  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.game-card:hover .game-thumb {
-  transform: scale(1.06);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .live-dot { animation: none; }
-  .game-card, .game-thumb { transition: none; }
-  .game-card:hover { transform: none; }
-  .game-card:hover .game-thumb { transform: none; }
 }
 
 /* travels page - city markers on the map */
