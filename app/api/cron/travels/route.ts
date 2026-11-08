@@ -186,7 +186,7 @@ async function run() {
     for (const k of todayKeys) if (!priorKeys.has(k)) newKeys.add(k);
     if (newKeys.size > 0) {
       const newTiles = filterTilesByKeys(tiles, newKeys);
-      const newFc = tilesToGeoJson(newTiles);
+      const newFc = tilesToGeoJson(newTiles, { fillGaps: false });
       newExploredFeatures = newFc.features
         .filter((f) => (f.properties as { kind?: string })?.kind === "explored")
         .map((f) => ({
@@ -205,6 +205,10 @@ async function run() {
       tileCount: tiles.length,
       skippedTileCount: skipped.length,
       blockCount,
+      filledBlockCount: fc.features.reduce(
+        (s, f) => s + ((f.properties as { filledBlocks?: number } | null)?.filledBlocks ?? 0),
+        0,
+      ),
       visitedPixelCount,
       bbox,
       countries,

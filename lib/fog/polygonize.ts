@@ -2,6 +2,7 @@ import polygonClipping from "polygon-clipping";
 import type { Feature, FeatureCollection, MultiPolygon, Position } from "geojson";
 import { TILE_WIDTH, BITMAP_WIDTH, type ParsedTile, isVisited } from "./parseTile.ts";
 import { globalPixelToLngLat } from "./project.ts";
+import { fillBlockGaps, type BlockXY } from "./bridge.ts";
 
 // Two layers of output:
 //   - "explored"  : dissolved MultiPolygon of where the user has been
@@ -19,15 +20,33 @@ function roundCoord(n: number): number {
   return Math.round(n * p) / p;
 }
 
-export function tilesToGeoJson(tiles: ParsedTile[]): FeatureCollection {
-  const exploredCoords = buildExploredMultiPolygon(tiles);
+export interface GeoJsonOptions {
+  /** Join small gaps between path pieces (see bridge.ts). On by default. */
+  fillGaps?: boolean;
+  maxGap?: number;
+}
+
+export function tilesToGeoJson(tiles: ParsedTile[], opts: GeoJsonOptions = {}): FeatureCollection {
+  const blocks: BlockXY[] = [];
+  for (const t of tiles) {
+    for (const blk of t.blocks) {
+      blocks.push([t.tileX * TILE_WIDTH + blk.bx, t.tileY * TILE_WIDTH + blk.by]);
+    }
+  }
+  return blocksToGeoJson(blocks, opts);
+}
+
+// Same output as tilesToGeoJson, from global block coordinates. Used to
+// rebuild stored snapshots from their block-key sidecars.
+export function blocksToGeoJson(blocks: BlockXY[], opts: GeoJsonOptions = {}): FeatureCollection {
+  const exploredCoords = buildExploredMultiPolygon(blocks, opts);
   const fogCoords = buildFogMultiPolygon(exploredCoords.map((e) => e.poly));
 
   // One Polygon feature per component so clicking returns just that
   // region's polygon (not the whole MultiPolygon's bbox).
   const exploredFeatures: Feature[] = exploredCoords.map((item, i) => ({
     type: "Feature",
-    properties: { kind: "explored", id: i, blocks: item.blocks },
+    properties: { kind: "explored", id: i, blocks: item.blocks, filledBlocks: item.filled },
     geometry: { type: "Polygon", coordinates: item.poly },
   }));
   const fog: Feature<MultiPolygon> = {
@@ -38,13 +57,20 @@ export function tilesToGeoJson(tiles: ParsedTile[]): FeatureCollection {
   return { type: "FeatureCollection", features: [fog, ...exploredFeatures] };
 }
 
-function buildExploredMultiPolygon(tiles: ParsedTile[]): Array<{ poly: Position[][]; blocks: number }> {
+function buildExploredMultiPolygon(
+  blocks: BlockXY[],
+  opts: GeoJsonOptions,
+): Array<{ poly: Position[][]; blocks: number; filled: number }> {
   const populated = new Map<BlockKey, [number, number]>();
-  for (const t of tiles) {
-    for (const blk of t.blocks) {
-      const gbx = t.tileX * TILE_WIDTH + blk.bx;
-      const gby = t.tileY * TILE_WIDTH + blk.by;
-      populated.set(makeKey(gbx, gby), [gbx, gby]);
+  for (const [gbx, gby] of blocks) populated.set(makeKey(gbx, gby), [gbx, gby]);
+  // Filled blocks join the shapes but are not counted as visited.
+  const filledKeys = new Set<BlockKey>();
+  if (opts.fillGaps ?? true) {
+    for (const [gbx, gby] of fillBlockGaps(populated.values(), { maxGap: opts.maxGap })) {
+      const k = makeKey(gbx, gby);
+      if (populated.has(k)) continue;
+      populated.set(k, [gbx, gby]);
+      filledKeys.add(k);
     }
   }
 
@@ -72,20 +98,25 @@ function buildExploredMultiPolygon(tiles: ParsedTile[]): Array<{ poly: Position[
     components.push(comp);
   }
 
-  const out: Array<{ poly: Position[][]; blocks: number }> = [];
+  const out: Array<{ poly: Position[][]; blocks: number; filled: number }> = [];
   for (const comp of components) {
     const rects = comp.map(([gbx, gby]) => [blockRectLngLat(gbx, gby)]);
     if (rects.length === 0) continue;
+    const filled = comp.filter(([gbx, gby]) => filledKeys.has(makeKey(gbx, gby))).length;
+    const real = comp.length - filled;
     try {
       const [first, ...rest] = rects as unknown as Parameters<typeof polygonClipping.union>;
       const unioned = polygonClipping.union(first, ...rest) as unknown as Position[][][];
       // Usually one polygon per component; if union emits multiple pieces
       // (rare for rectilinear input), split the block count proportionally.
-      const perPolyBlocks =
-        unioned.length === 1 ? comp.length : Math.max(1, Math.round(comp.length / unioned.length));
-      for (const poly of unioned) out.push({ poly, blocks: perPolyBlocks });
+      const split = (n: number) =>
+        unioned.length === 1 ? n : Math.max(0, Math.round(n / unioned.length));
+      for (const poly of unioned) out.push({ poly, blocks: Math.max(1, split(real)), filled: split(filled) });
     } catch {
-      for (const r of rects) out.push({ poly: r, blocks: 1 });
+      for (const [gbx, gby] of comp) {
+        const isFilled = filledKeys.has(makeKey(gbx, gby));
+        out.push({ poly: [blockRectLngLat(gbx, gby)], blocks: isFilled ? 0 : 1, filled: isFilled ? 1 : 0 });
+      }
     }
   }
   return out;
